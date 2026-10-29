@@ -1,5 +1,5 @@
 // Dessert Spotter offline support: keeps the app shell available with a weak or no connection.
-const CACHE = "dessert-spotter-v2";
+const CACHE = "dessert-spotter-v3";
 const SHELL = [
   "./", "./index.html", "./app/", "./app/index.html", "./config.js", "./manifest.webmanifest",
   "./favicon.ico", "./assets/mark-128.webp", "./assets/logo-400.png", "./assets/icon-192.png",

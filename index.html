@@ -165,6 +165,14 @@ section{padding-block:clamp(48px,8vw,88px)}
 .bigsearch .btn{padding:15px 26px}
 @media (max-width:480px){.bigsearch .btn{width:100%;justify-content:center}}
 
+/* fresh photos */
+.fresh-head{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap}
+.fresh-head p{margin:6px 0 0;color:var(--muted)}
+.fresh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:14px;margin-top:26px}
+.fresh-grid a{display:grid;gap:6px;text-decoration:none;color:var(--ink)}
+.fresh-grid img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:18px;background:var(--chip);display:block}
+.fresh-grid strong{font-weight:900;font-size:15px;line-height:1.25}
+.fresh-grid span{font-size:13px;color:var(--muted);margin-top:-4px}
 footer{border-top:1px solid var(--line);padding-block:28px calc(28px + env(safe-area-inset-bottom,0px));color:var(--muted);font-size:14px}
 footer .in{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
 footer .brand img{width:32px;height:32px;border-radius:9px}
@@ -234,6 +242,20 @@ footer a{color:var(--muted)}
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section id="fresh" aria-labelledby="fresh-title" style="padding-top:0" hidden>
+    <div class="in">
+      <div class="fresh-head">
+        <div>
+          <p class="eyebrow">Fresh from the community</p>
+          <h2 id="fresh-title">What people are spotting</h2>
+          <p>Photos shared by people after they tried something.</p>
+        </div>
+        <a class="btn ghost" href="app/index.html">Add your photo</a>
+      </div>
+      <div class="fresh-grid" id="freshGrid"></div>
     </div>
   </section>
 
@@ -334,8 +356,32 @@ footer a{color:var(--muted)}
   </div>
 </footer>
 
+<script src="config.js"></script>
 <script>
 (function(){
+  var C=window.DS_CONFIG||{};
+  if(C.supabaseUrl&&C.supabaseKey){
+    var run=function(){
+      try{
+        var db=window.supabase.createClient(C.supabaseUrl,C.supabaseKey,{auth:{persistSession:false,detectSessionInUrl:false}});
+        db.from("photos").select("id,spot_name,dessert,path,created_at").order("created_at",{ascending:false}).limit(8).then(function(res){
+          var rows=(res&&res.data)||[];if(res.error||!rows.length)return;
+          var base=String(C.supabaseUrl).replace(/\/+$/,"")+"/storage/v1/object/public/photos/",g=document.getElementById("freshGrid");
+          rows.forEach(function(r){
+            if(!r||typeof r.path!=="string")return;
+            var a=document.createElement("a");a.href="app/index.html"+(r.dessert?"?q="+encodeURIComponent(r.dessert):"");
+            var im=document.createElement("img");im.src=base+r.path.split("/").map(encodeURIComponent).join("/");im.alt=(r.dessert||"Dessert")+(r.spot_name?" at "+r.spot_name:"");im.loading="lazy";
+            var t=document.createElement("strong");t.textContent=r.dessert||r.spot_name||"Dessert";
+            var sub=document.createElement("span");sub.textContent=r.dessert?(r.spot_name||""):"";
+            a.appendChild(im);a.appendChild(t);if(sub.textContent)a.appendChild(sub);g.appendChild(a);
+          });
+          if(g.children.length)document.getElementById("fresh").hidden=false;
+        });
+      }catch(e){}
+    };
+    if(window.supabase&&window.supabase.createClient)run();
+    else{var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4";s.async=true;s.onload=run;document.head.appendChild(s)}
+  }
   var words=["tiramisu","mochi","baklava","gulab jamun","ube cheesecake","churros","halo-halo","cannoli","bingsu"],i=0,w=document.getElementById("word");
   var still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
   if(w&&!still){setInterval(function(){w.classList.add("out");setTimeout(function(){i=(i+1)%words.length;w.textContent=words[i];w.classList.remove("out")},350)},2600)}

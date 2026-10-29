@@ -12,9 +12,10 @@ A project by [amaris ct](https://amarisct.github.io/Amaris/).
 | `app/index.html` | The app: dessert search, spotting radar, ratings, reviews, ways to get it, and menu-change reports |
 | `manifest.webmanifest` | Makes the app installable on phones (name, icons, colors) |
 | `sw.js` | Keeps the app working on a weak or no connection |
-| `config.js` | Settings. Only one so far: the optional live-search address |
+| `config.js` | Settings: the live-search address and the Supabase keys for photos |
 | `assets/` | Logo, app icons, favicons, and ZIP code locations used for distances |
-| `server/yelp-proxy-worker.js` | Optional: turns on live Yelp results inside the app (see below) |
+| `server/yelp-proxy-worker.js` | Optional: turns on live Yelp results and photos inside the app (see below) |
+| `server/supabase-photos.sql` | Sets up shared photos in Supabase (see below) |
 | `.nojekyll` | Tells GitHub Pages to publish the files as they are |
 
 There's nothing to install or build. It's plain HTML, CSS and JavaScript.
@@ -43,29 +44,48 @@ If you own the domain, enter it under **Settings → Pages → Custom domain**. 
 - The dessert radar, directions, and DoorDash links
 - "Look further" buttons that open the same search on Yelp, Google Maps, and DoorDash
 - Adding spots, ratings, reviews, ways to get it, and menu-change reports
+- City, neighborhood, and ZIP code suggestions in the **Near** box
 
-**For now, ratings, reviews, and added spots are saved on each person's own phone or browser.** Other people won't see them until a shared database is connected (next steps).
+**For now, ratings, reviews, and added spots are saved on each person's own phone or browser.** Photos are shared once Supabase is set up (below).
 
-## Next steps
+## Turn on photos people add (Supabase, free, about 15 minutes)
 
-### 1. Live Yelp results inside the app (optional, about 10 minutes)
+People can add a photo after they try something, from **Rate or update** or **Add photo** on any spot. Photos show on that spot's card, in a full-screen viewer, and in a "Fresh from the community" section on the home page. People sign in with a one-time email link (no password) before sharing, and they can delete their own photos.
 
-1. Create a Yelp Fusion API key at <https://www.yelp.com/developers>. Check the current plan and pricing on Yelp's site.
+1. Create a free account at <https://supabase.com> and click **New project**. Name it `dessert-spotter`, choose a region near Washington (US West), and save the database password somewhere safe.
+2. Open **SQL Editor → New query**, paste everything in `server/supabase-photos.sql`, and click **Run**. This creates the photo list and the photo storage, with rules so people can only add or delete their own photos.
+3. Open **Authentication → URL Configuration**:
+   - **Site URL:** `https://amarisct.github.io/dessertspotter/app/`
+   - **Redirect URLs:** add `https://amarisct.github.io/dessertspotter/app/` (and your dessertspotter.com address later)
+4. Open **Project Settings → API Keys** (or **API**). Copy the **Project URL** and the **Publishable key** (older projects call it the "anon public" key). Both are safe to put on a public site.
+5. Paste them into `config.js` and upload it to the repository:
+   ```js
+   supabaseUrl: "https://abcdefghijkl.supabase.co",
+   supabaseKey: "sb_publishable_..."
+   ```
+
+**Before a real launch:**
+- Supabase's built-in email is only meant for testing and sends a handful of sign-in emails per hour. Under **Authentication → Emails → SMTP Settings**, connect a sending service, such as Resend's free plan, so sign-in links arrive reliably.
+- **Removing photos:** you can delete any photo in **Table Editor → photos** (delete the row) and **Storage → photos** (delete the file).
+- **Inactivity:** free Supabase projects pause after a week with no activity. If photos stop loading, open the Supabase dashboard and click **Restore**.
+- **Privacy page:** sign-in stores people's email addresses, so add a short privacy page before you promote the site widely.
+
+## Turn on live Yelp results and Yelp photos (optional)
+
+With this on, the app shows live Yelp results (name, photo, rating, distance) for any dessert search, anywhere in the US.
+
+1. Create a Yelp Fusion API key at <https://www.yelp.com/developers>. Yelp charges per call, so check the current plan and pricing on their site.
 2. Create a free Cloudflare account, then go to **Workers & Pages → Create → Worker**. Replace the starter code with `server/yelp-proxy-worker.js` and deploy.
 3. In the Worker's **Settings → Variables and Secrets**, add:
    - `YELP_API_KEY`: your Yelp key, saved as a **secret**
-   - `ALLOWED_ORIGINS`: your site's address, for example `https://amarisct.github.io` (separate several with commas)
-4. Copy the Worker's address (it ends in `.workers.dev`) into `config.js`:
-   ```js
-   window.DS_CONFIG = { yelpProxy: "https://dessert-spotter-yelp.yourname.workers.dev" };
-   ```
-5. Upload the new `config.js` to the repository. Live results appear above the spotted list, marked "Powered by Yelp," as Yelp's terms require.
+   - `ALLOWED_ORIGINS`: `https://amarisct.github.io` (separate several addresses with commas)
+4. Copy the Worker's address (it ends in `.workers.dev`) into `config.js` as `yelpProxy` and upload it.
 
-Never put the Yelp key in `config.js` or anywhere else in this folder. Everything here is public.
+Never put the Yelp key in `config.js` or anywhere else in this repository. Everything here is public.
 
-### 2. Shared ratings and reviews
+## Later: shared ratings and reviews
 
-To let everyone see each other's ratings, reviews, and added spots, connect a free database such as Supabase, with sign-in so people can only edit their own entries. The app already keeps all of this in one place in the code (`writeDoc` and `initCommunity` in `app/index.html`), so switching from on-device storage to a shared database is a contained change.
+Ratings, reviews, ways to get it, and menu-change reports are still saved on each person's device. Once Supabase is set up for photos, the same project and sign-in can store these too, so everyone sees them. In the code they live in `writeDoc` and `initCommunity` in `app/index.html`.
 
 ## Updating the starter list
 
