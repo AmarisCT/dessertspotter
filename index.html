@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dessert Spotter</title>
+<meta name="description" content="Search the dessert you're craving and find the closest place that has it. Ratings, reviews, and how to get it: in person, pickup, or delivery. Starting in Washington.">
+<meta name="theme-color" content="#FFF8EE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C120C" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta property="og:title" content="Dessert Spotter">
+<meta property="og:description" content="Crave it. Find it. Rate it. Search a dessert and find the closest place that has it.">
+<meta property="og:image" content="assets/logo-400.png">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap">
+<style>
+/* Layout: brand bar, hero with headline beside a phone showing the app, then how it works, features,
+   a chocolate Washington band, install steps, and a closing search box. Palette from the Dessert Spotter logo. */
+:root{
+  --bg:#FFF8EE; --surface:#FFFDF8; --ink:#482D20; --muted:#86695A; --line:#F0E1CC; --chip:#FCEFD9;
+  --accent:#E24F3E; --accent-ink:#FFFFFF; --link:#B4392A; --accent-soft:#FFE3DC; --caramel:#FCB13C; --cone:#BA7057;
+  --choc:#3A2318; --choc-ink:#F6DDBF; --lens:#FB7D71;
+  --shadow:0 1px 0 rgba(72,45,32,.05), 0 18px 40px -26px rgba(72,45,32,.45);
+  --font-display:"Playfair Display",Georgia,"Times New Roman",serif;
+  --font-body:"Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1C120C; --surface:#271A12; --ink:#FFF2E2; --muted:#C9A991; --line:#3D2A1D; --chip:#33231A;
+  --accent:#FB7D71; --accent-ink:#2B0E09; --link:#FF9C90; --accent-soft:#4A2620; --caramel:#FCB13C; --cone:#D08A6E;
+  --choc:#120A06; --choc-ink:#EFD3B4; --lens:#FB7D71;
+  --shadow:0 1px 0 rgba(0,0,0,.25), 0 18px 40px -24px rgba(0,0,0,.8); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1C120C; --surface:#271A12; --ink:#FFF2E2; --muted:#C9A991; --line:#3D2A1D; --chip:#33231A;
+  --accent:#FB7D71; --accent-ink:#2B0E09; --link:#FF9C90; --accent-soft:#4A2620; --caramel:#FCB13C; --cone:#D08A6E;
+  --choc:#120A06; --choc-ink:#EFD3B4; --lens:#FB7D71;
+  --shadow:0 1px 0 rgba(0,0,0,.25), 0 18px 40px -24px rgba(0,0,0,.8); color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.55}
+img{max-width:100%}
+[hidden]{display:none!important}
+a{color:var(--link)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.in{max-width:1120px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.btn{appearance:none;border:0;border-radius:999px;padding:12px 22px;font:inherit;font-weight:800;cursor:pointer;background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap}
+.btn:hover{filter:brightness(1.05)}
+.btn.ghost{background:transparent;color:var(--link);box-shadow:inset 0 0 0 1.5px currentColor}
+.eyebrow{font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--cone);margin:0}
+h1,h2,h3{text-wrap:balance}
+h2{font-family:var(--font-display);font-weight:700;font-size:clamp(28px,4.4vw,42px);line-height:1.12;margin:0}
+section{padding-block:clamp(48px,8vw,88px)}
+
+/* nav */
+.nav{padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:8px}
+.nav .in{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.brand img{width:44px;height:44px;border-radius:12px;box-shadow:0 0 0 1px var(--line)}
+.brand span{font-weight:900;font-size:21px;letter-spacing:-.2px}
+.nav nav{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.nav nav a.txt{color:var(--ink);text-decoration:none;font-weight:700;font-size:15px}
+.nav nav a.txt:hover{color:var(--link)}
+@media (max-width:640px){.nav nav a.txt{display:none}}
+.nav .btn{padding:9px 18px}
+
+/* hero */
+.hero{padding-block:clamp(24px,5vw,56px) clamp(40px,7vw,80px)}
+.hero .in{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(28px,5vw,64px);align-items:center}
+@media (max-width:880px){.hero .in{grid-template-columns:minmax(0,1fr)}}
+.hero h1{font-family:var(--font-display);font-weight:800;font-size:clamp(44px,7.4vw,84px);line-height:1;margin:14px 0 0;letter-spacing:-.5px}
+.word{display:inline-block;font-style:italic;color:var(--accent);transition:opacity .35s ease,transform .35s ease}
+.word.out{opacity:0;transform:translateY(.18em)}
+.hero .lede{font-size:clamp(18px,2.2vw,21px);color:var(--muted);max-width:34ch;margin:20px 0 0}
+.hero .lede strong{color:var(--ink)}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.tryline{margin-top:26px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tryline span{font-size:13px;font-weight:800;color:var(--muted);margin-right:2px}
+.chip{display:inline-block;border-radius:999px;padding:6px 13px;background:var(--chip);color:var(--ink);font-weight:700;font-size:14px;text-decoration:none}
+.chip:hover{background:var(--accent-soft)}
+
+/* phone */
+.phone{justify-self:center;width:min(330px,100%);aspect-ratio:9/18.5;max-width:100%;background:var(--choc);border-radius:44px;padding:12px;box-shadow:var(--shadow),0 0 0 1px rgba(0,0,0,.08);position:relative}
+.screen{height:100%;background:#FFF8EE;color:#482D20;border-radius:34px;overflow:hidden;display:flex;flex-direction:column;gap:10px;padding:34px 14px 14px;font-size:12px}
+.notch{position:absolute;top:20px;left:50%;transform:translateX(-50%);width:84px;height:22px;border-radius:12px;background:var(--choc)}
+.ph-brand{display:flex;align-items:center;gap:7px;font-weight:900;font-size:15px}
+.ph-brand img{width:26px;height:26px;border-radius:7px}
+.ph-search{display:flex;align-items:center;gap:7px;background:#FFFDF8;border:1.5px solid #F0E1CC;border-radius:12px;padding:9px 10px;font-weight:700;font-size:14px}
+.ph-search svg{width:14px;height:14px;color:#86695A;flex:none}
+.ph-near{font-size:11px;color:#86695A;margin-top:-4px}
+.ph-radar{background:#3A2318;border-radius:16px;padding:8px;display:grid;place-items:center}
+.ph-radar svg{width:100%;max-width:220px;height:auto;display:block}
+.ph-list{display:grid;gap:7px}
+.ph-card{background:#FFFDF8;border:1px solid #F0E1CC;border-radius:12px;padding:8px 10px;display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:8px;align-items:center}
+.ph-rank{width:20px;height:20px;border-radius:50%;background:#FB7D71;color:#3A1410;display:grid;place-items:center;font-family:var(--font-mono);font-size:10px}
+.ph-name{font-weight:800;font-size:12.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ph-item{display:inline-block;margin-top:3px;background:#FCB13C;color:#3A2116;border-radius:999px;padding:1px 7px;font-size:10.5px;font-weight:700}
+.ph-dist{font-family:var(--font-mono);font-size:10.5px;white-space:nowrap}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:34px;counter-reset:s}
+@media (max-width:820px){.steps{grid-template-columns:minmax(0,1fr)}}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:22px;display:grid;gap:8px;align-content:start}
+.step .n{font-family:var(--font-display);font-style:italic;font-weight:700;font-size:40px;line-height:1;color:var(--caramel)}
+.step h3{margin:0;font-size:20px;font-weight:900}
+.step p{margin:0;color:var(--muted)}
+
+/* features */
+.feat-head{display:grid;gap:12px;max-width:640px}
+.feat-head p{margin:0;color:var(--muted);font-size:18px}
+.features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 32px;margin-top:38px}
+@media (max-width:880px){.features{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.features{grid-template-columns:minmax(0,1fr)}}
+.feature{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;align-items:start}
+.ic{width:44px;height:44px;border-radius:14px;background:var(--accent-soft);color:var(--link);display:grid;place-items:center}
+.ic svg{width:22px;height:22px}
+.feature h3{margin:0 0 4px;font-size:18px;font-weight:900}
+.feature p{margin:0;color:var(--muted);font-size:15px}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pills span{font-size:12.5px;font-weight:800;padding:2px 10px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--cone);color:var(--cone)}
+
+/* washington band */
+.band{background:var(--choc);color:var(--choc-ink)}
+.band .in{display:grid;gap:30px}
+.band .eyebrow{color:var(--caramel)}
+.band h2{color:#FFF2E2}
+.band p{margin:0;max-width:60ch;opacity:.92}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:640px){.stats{grid-template-columns:minmax(0,1fr)}}
+.stat{border-top:1.5px solid rgba(252,177,60,.45);padding-top:14px}
+.stat b{display:block;font-family:var(--font-display);font-weight:800;font-size:clamp(40px,6vw,58px);line-height:1;color:var(--caramel);font-variant-numeric:tabular-nums}
+.stat span{font-weight:700}
+.cities{display:flex;flex-wrap:wrap;gap:8px}
+.cities span{font-size:13.5px;font-weight:700;padding:5px 12px;border-radius:999px;background:rgba(255,242,226,.08);box-shadow:inset 0 0 0 1px rgba(252,177,60,.3)}
+
+/* install */
+.install{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;margin-top:30px}
+@media (max-width:720px){.install{grid-template-columns:minmax(0,1fr)}}
+.how{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:22px;display:grid;gap:10px;align-content:start}
+.how h3{margin:0;font-size:19px;font-weight:900}
+.how ol{margin:0;padding-left:20px;color:var(--muted);display:grid;gap:4px}
+.how ol strong{color:var(--ink)}
+
+/* closing search */
+.closer .in{display:grid;justify-items:center;text-align:center;gap:18px}
+.closer h2{font-size:clamp(34px,5.4vw,56px)}
+.closer h2 em{color:var(--accent)}
+.bigsearch{display:flex;gap:10px;width:min(620px,100%);flex-wrap:wrap}
+.bigsearch label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.bigsearch input{flex:1;min-width:0;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:15px 22px;font:inherit;font-size:18px;font-weight:700;outline:none}
+.bigsearch input:focus{border-color:var(--caramel)}
+.bigsearch .btn{padding:15px 26px}
+@media (max-width:480px){.bigsearch .btn{width:100%;justify-content:center}}
+
+footer{border-top:1px solid var(--line);padding-block:28px calc(28px + env(safe-area-inset-bottom,0px));color:var(--muted);font-size:14px}
+footer .in{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+footer .brand img{width:32px;height:32px;border-radius:9px}
+footer .brand span{font-size:16px}
+footer nav{display:flex;gap:16px;flex-wrap:wrap}
+footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="in">
+    <a class="brand" href="./"><img src="assets/mark-128.webp" alt="" width="44" height="44"><span>Dessert Spotter</span></a>
+    <nav aria-label="Main">
+      <a class="txt" href="#how">How it works</a>
+      <a class="txt" href="#features">Features</a>
+      <a class="txt" href="#install">Get the app</a>
+      <a class="btn" href="app/index.html">Open the app</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="in">
+      <div>
+        <p class="eyebrow">Crave it. Find it. Rate it.</p>
+        <h1 id="hero-title">Craving<br><span class="word" id="word">tiramisu</span>?</h1>
+        <p class="lede"><strong>Search the exact dessert you want</strong> and see the closest places that have it, plus how to get it: in person, pickup, or delivery.</p>
+        <div class="cta">
+          <a class="btn" href="app/index.html">Find desserts</a>
+          <a class="btn ghost" href="#how">How it works</a>
+        </div>
+        <div class="tryline">
+          <span>Try:</span>
+          <a class="chip" href="app/index.html?q=Tiramisu">Tiramisu</a>
+          <a class="chip" href="app/index.html?q=Mochi">Mochi</a>
+          <a class="chip" href="app/index.html?q=Baklava">Baklava</a>
+          <a class="chip" href="app/index.html?q=Gulab%20jamun">Gulab jamun</a>
+          <a class="chip" href="app/index.html?q=Halo-halo">Halo-halo</a>
+          <a class="chip" href="app/index.html?q=Churros">Churros</a>
+        </div>
+      </div>
+
+      <div class="phone" role="img" aria-label="The Dessert Spotter app showing cheesecake near downtown Seattle: Hood Famous Cafe and Bar about 0.6 miles away, The Flour Box about 5.5 miles, and T55 Pâtisserie about 10.9 miles.">
+        <div class="notch"></div>
+        <div class="screen" aria-hidden="true">
+          <div class="ph-brand"><img src="assets/mark-128.webp" alt="">Dessert Spotter</div>
+          <div class="ph-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>cheesecake</div>
+          <div class="ph-near">Near downtown Seattle</div>
+          <div class="ph-radar">
+            <svg viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(252,177,60,.3)" stroke-width="1.5"/>
+              <circle cx="100" cy="100" r="58" fill="none" stroke="rgba(252,177,60,.3)" stroke-width="1"/>
+              <circle cx="100" cy="100" r="29" fill="none" stroke="rgba(252,177,60,.3)" stroke-width="1" stroke-dasharray="2 4"/>
+              <path d="M100 100 L100 12 A88 88 0 0 1 176 56 Z" fill="rgba(252,177,60,.18)"/>
+              <circle cx="104" cy="117" r="8" fill="#FB7D71"/><text x="104" y="120.5" font-size="9" text-anchor="middle" fill="#3A1410" font-family="DM Mono, monospace">1</text>
+              <circle cx="121" cy="135" r="8" fill="#FB7D71"/><text x="121" y="138.5" font-size="9" text-anchor="middle" fill="#3A1410" font-family="DM Mono, monospace">2</text>
+              <circle cx="142" cy="26" r="8" fill="#FB7D71"/><text x="142" y="29.5" font-size="9" text-anchor="middle" fill="#3A1410" font-family="DM Mono, monospace">3</text>
+              <circle cx="100" cy="100" r="6" fill="#FCB13C"/><circle cx="100" cy="100" r="10" fill="none" stroke="#FCB13C" stroke-opacity=".5"/>
+            </svg>
+          </div>
+          <div class="ph-list">
+            <div class="ph-card"><span class="ph-rank">1</span><div style="min-width:0"><div class="ph-name">Hood Famous Cafe &amp; Bar</div><span class="ph-item">Ube cheesecake</span></div><span class="ph-dist">≈ 0.6 mi</span></div>
+            <div class="ph-card"><span class="ph-rank">2</span><div style="min-width:0"><div class="ph-name">The Flour Box</div><span class="ph-item">Basque cheesecake</span></div><span class="ph-dist">≈ 5.5 mi</span></div>
+            <div class="ph-card"><span class="ph-rank">3</span><div style="min-width:0"><div class="ph-name">T55 Pâtisserie</div><span class="ph-item">Basque cheesecake</span></div><span class="ph-dist">≈ 10.9 mi</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" aria-labelledby="how-title">
+    <div class="in">
+      <p class="eyebrow">How it works</p>
+      <h2 id="how-title">From craving to first bite in three steps</h2>
+      <div class="steps">
+        <div class="step"><span class="n">1</span><h3>Search your craving</h3><p>Type the dessert by name, like tiramisu, ube cheesecake, or gulab jamun. Not just "bakery."</p></div>
+        <div class="step"><span class="n">2</span><h3>See the closest spots</h3><p>Places that have it, sorted by distance from your ZIP code or where you are now, on your dessert radar.</p></div>
+        <div class="step"><span class="n">3</span><h3>Go get it, then rate it</h3><p>Get directions or check DoorDash. Afterward, rate it, leave a review, and report menu changes for the next person.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" aria-labelledby="feat-title" style="padding-top:0">
+    <div class="in">
+      <div class="feat-head">
+        <p class="eyebrow">Features</p>
+        <h2 id="feat-title">Every dessert, and where it is</h2>
+        <p>Finding one specific dessert can take hours of scrolling menus. Dessert Spotter puts the dessert first.</p>
+      </div>
+      <div class="features">
+        <div class="feature"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div><div><h3>Search by dessert</h3><p>Over 100 desserts tagged by name across the starter list, from bingsu to tres leches.</p></div></div>
+        <div class="feature"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 12 18 6"/></svg></div><div><h3>Your dessert radar</h3><p>See which spots are closest at a glance, with distances and one-tap directions.</p></div></div>
+        <div class="feature"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13v10H3zM16 10h3l2 3v4h-5"/><circle cx="7" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/></svg></div><div><h3>How to get it</h3><p>See how people got it:</p><div class="pills"><span>In person</span><span>Pickup</span><span>Delivery</span><span>DoorDash</span></div></div></div>
+        <div class="feature"><div class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/></svg></div><div><h3>Ratings &amp; reviews</h3><p>Rate the place and the exact dessert you had, so "4.8 for tiramisu" means something.</p></div></div>
+        <div class="feature"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg></div><div><h3>Menu-change reports</h3><p>Tiramisu now weekends only? Place closed? Anyone can flag it so the list stays useful.</p></div></div>
+        <div class="feature"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/></svg></div><div><h3>Works like an app</h3><p>Add it to your home screen on iPhone or Android. It opens full screen and keeps working on a weak connection.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="wa-title">
+    <div class="in">
+      <div style="display:grid;gap:12px">
+        <p class="eyebrow">Starting in Washington</p>
+        <h2 id="wa-title">Seattle to Tacoma, already spotted</h2>
+        <p>The first map is built from places named in 2026 local food guides, each tagged with the desserts it's known for. It grows every time someone spots a new one.</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>77</b><span>dessert spots</span></div>
+        <div class="stat"><b>100+</b><span>desserts tagged by name</span></div>
+        <div class="stat"><b>41</b><span>neighborhoods and cities</span></div>
+      </div>
+      <div class="cities" aria-label="Cities covered">
+        <span>Seattle</span><span>Tacoma</span><span>Bothell</span><span>Redmond</span><span>Kirkland</span><span>Issaquah</span><span>Kent</span><span>Renton</span><span>Puyallup</span><span>Lakewood</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="install" aria-labelledby="install-title">
+    <div class="in">
+      <p class="eyebrow">Get the app</p>
+      <h2 id="install-title">Put Dessert Spotter on your home screen</h2>
+      <div class="install">
+        <div class="how">
+          <h3>iPhone</h3>
+          <ol>
+            <li>Open <a href="app/index.html">the app</a> in <strong>Safari</strong>.</li>
+            <li>Tap the <strong>Share</strong> button.</li>
+            <li>Choose <strong>Add to Home Screen</strong>.</li>
+          </ol>
+        </div>
+        <div class="how">
+          <h3>Android</h3>
+          <ol>
+            <li>Open <a href="app/index.html">the app</a> in <strong>Chrome</strong>.</li>
+            <li>Tap <strong>Install app</strong> at the top of the page, or open the <strong>⋮</strong> menu.</li>
+            <li>Choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="closer" aria-labelledby="close-title" style="padding-top:0">
+    <div class="in">
+      <h2 id="close-title">What are you <em>craving</em>?</h2>
+      <form class="bigsearch" id="bigsearch" role="search">
+        <label for="crave">Dessert</label>
+        <input id="crave" type="search" placeholder="Tiramisu, mochi, baklava…" autocomplete="off" enterkeyhint="search">
+        <button class="btn" type="submit">Find it</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="in">
+    <a class="brand" href="./"><img src="assets/mark-128.webp" alt="" width="32" height="32"><span>Dessert Spotter</span></a>
+    <nav aria-label="Footer">
+      <a href="app/index.html">Open the app</a>
+      <a href="https://www.linkedin.com/showcase/dessert-spotter/" target="_blank" rel="noopener">LinkedIn</a>
+      <span>A project by <a href="https://amarisct.github.io/Amaris/" target="_blank" rel="noopener">amaris ct</a></span>
+      <span>© 2026 Dessert Spotter</span>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var words=["tiramisu","mochi","baklava","gulab jamun","ube cheesecake","churros","halo-halo","cannoli","bingsu"],i=0,w=document.getElementById("word");
+  var still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(w&&!still){setInterval(function(){w.classList.add("out");setTimeout(function(){i=(i+1)%words.length;w.textContent=words[i];w.classList.remove("out")},350)},2600)}
+  var f=document.getElementById("bigsearch");
+  if(f)f.addEventListener("submit",function(e){e.preventDefault();var q=document.getElementById("crave").value.trim();location.href="app/index.html"+(q?"?q="+encodeURIComponent(q):"")});
+  if("serviceWorker" in navigator){addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+})();
+</script>
+</body>
+</html>

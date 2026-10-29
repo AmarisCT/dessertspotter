@@ -1,0 +1,884 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dessert Spotter</title>
+<meta name="description" content="Search the dessert you're craving and find the closest place that has it. Starting in Washington.">
+<meta name="theme-color" content="#FFF8EE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C120C" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dessert Spotter">
+<meta property="og:title" content="Dessert Spotter">
+<meta property="og:description" content="Crave it. Find it. Rate it.">
+<meta property="og:image" content="../assets/logo-400.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap">
+<style>
+/* Layout: brand header and search console, then a chocolate "spotting radar" beside live Yelp results and the spotted list.
+   Palette comes from the Dessert Spotter logo: cream ground, chocolate wordmark, caramel scoop, coral lens, red handle. */
+:root{
+  --bg:#FFF8EE; --surface:#FFFDF8; --ink:#482D20; --muted:#86695A; --line:#F0E1CC; --chip:#FCEFD9;
+  --accent:#E24F3E; --accent-ink:#FFFFFF; --link:#B4392A; --accent-soft:#FFE3DC; --caramel:#FCB13C; --cone:#BA7057;
+  --radar-bg:#3A2318; --radar-ring:rgba(252,177,60,.28); --radar-text:#F6DDBF; --blip:#FB7D71; --blip-ink:#3A1410; --radar-you:#FCB13C;
+  --warn:#9A4E00; --skel:#F5E7D2; --shadow:0 1px 0 rgba(72,45,32,.05), 0 10px 26px -18px rgba(72,45,32,.38);
+  --font-display:"Playfair Display",Georgia,"Times New Roman",serif;
+  --font-brand:"Nunito",ui-rounded,"SF Pro Rounded",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-body:"Nunito",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1C120C; --surface:#271A12; --ink:#FFF2E2; --muted:#C9A991; --line:#3D2A1D; --chip:#33231A;
+  --accent:#FB7D71; --accent-ink:#2B0E09; --link:#FF9C90; --accent-soft:#4A2620; --caramel:#FCB13C; --cone:#D08A6E;
+  --radar-bg:#120A06; --radar-ring:rgba(252,177,60,.24); --radar-text:#EFD3B4; --blip:#FB7D71; --blip-ink:#2B0E09; --radar-you:#FCB13C;
+  --warn:#F5B565; --skel:#33231A; --shadow:0 1px 0 rgba(0,0,0,.25), 0 12px 30px -18px rgba(0,0,0,.75); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1C120C; --surface:#271A12; --ink:#FFF2E2; --muted:#C9A991; --line:#3D2A1D; --chip:#33231A;
+  --accent:#FB7D71; --accent-ink:#2B0E09; --link:#FF9C90; --accent-soft:#4A2620; --caramel:#FCB13C; --cone:#D08A6E;
+  --radar-bg:#120A06; --radar-ring:rgba(252,177,60,.24); --radar-text:#EFD3B4; --blip:#FB7D71; --blip-ink:#2B0E09; --radar-you:#FCB13C;
+  --warn:#F5B565; --skel:#33231A; --shadow:0 1px 0 rgba(0,0,0,.25), 0 12px 30px -18px rgba(0,0,0,.75); color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:calc(20px + env(safe-area-inset-top,0px)) calc(48px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:1120px;margin:0 auto;display:grid;gap:22px}
+a{color:var(--link)}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;min-width:0;text-decoration:none;color:inherit}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap}
+.brand img{width:58px;height:58px;flex:none;border-radius:14px;box-shadow:0 0 0 1px var(--line)}
+.brand h1{font-family:var(--font-brand);font-weight:900;font-size:clamp(26px,4.6vw,36px);line-height:1.05;margin:0;color:var(--ink);letter-spacing:-.3px}
+.tag{margin:3px 0 0;font-family:var(--font-display);font-style:italic;font-weight:600;color:var(--cone);font-size:16px}
+.btn{appearance:none;border:0;border-radius:999px;padding:10px 18px;font-weight:800;cursor:pointer;background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn:hover{filter:brightness(1.05)}
+.btn.ghost{background:transparent;color:var(--link);box-shadow:inset 0 0 0 1.5px currentColor}
+.btn.small{padding:6px 12px;font-size:13px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+/* search console */
+.console{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:var(--shadow);display:grid;gap:14px}
+.fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,260px);gap:10px;align-items:start}
+@media (max-width:720px){.fields{grid-template-columns:minmax(0,1fr)}}
+.field{display:grid;gap:4px;min-width:0}
+.field label{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.inbox{display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:0 12px;min-width:0}
+.inbox:focus-within{border-color:var(--caramel)}
+.inbox svg{width:18px;height:18px;flex:none;color:var(--muted)}
+.inbox input{flex:1;min-width:0;border:0;background:transparent;padding:13px 0;outline:none;font-size:17px;font-weight:600}
+.inbox input::placeholder{color:var(--muted);opacity:.85;font-weight:400}
+.locbtn{border:0;background:transparent;color:var(--link);cursor:pointer;padding:6px;margin-right:-6px;display:grid;place-items:center;border-radius:10px}
+.locbtn svg{width:20px;height:20px;color:currentColor}
+.locbtn:hover{background:var(--chip)}
+.clear{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:4px}
+.loc-note{font-size:12px;color:var(--muted);min-height:18px}
+.loc-note.err{color:var(--warn)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:0;border-radius:999px;padding:6px 12px;background:var(--chip);color:var(--ink);cursor:pointer;font-size:13.5px;font-weight:700}
+.chip:hover{background:var(--accent-soft)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+/* main grid */
+.main{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:880px){.main{grid-template-columns:minmax(0,1fr)}}
+.radar-card{background:var(--radar-bg);border-radius:22px;padding:16px;color:var(--radar-text);position:sticky;top:16px;display:grid;gap:10px}
+@media (max-width:880px){.radar-card{position:static;order:2}}
+.radar-card .eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.9;display:flex;justify-content:space-between;gap:8px}
+#radar{width:100%;max-width:100%;height:auto;display:block;aspect-ratio:1/1}
+#radar text{font-family:var(--font-mono)}
+.sweep{transform-origin:160px 160px;animation:spin 7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.blip{cursor:pointer}
+.blip circle.dot{fill:var(--blip)}
+.blip text{fill:var(--blip-ink);font-size:9px;font-weight:500;pointer-events:none}
+.blip circle.halo{fill:none;stroke:var(--radar-text);stroke-width:2;opacity:0;transition:opacity .15s}
+.blip.hot circle.halo{opacity:1}
+.legend{font-size:12px;opacity:.85;margin:0}
+
+.results{display:grid;gap:14px;min-width:0}
+.summary{display:grid;gap:2px}
+.summary h2{margin:0;font-family:var(--font-display);font-weight:700;font-size:clamp(22px,3.4vw,28px);line-height:1.2;text-wrap:balance}
+.summary h2 em{font-style:italic;color:var(--accent)}
+.summary p{margin:0;color:var(--muted);font-size:14px}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:4px}
+.sec-head h3{margin:0;font-size:13px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.sec-head p{margin:0;color:var(--muted);font-size:12.5px}
+.list{display:grid;gap:12px}
+.spot{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px;transition:border-color .15s,box-shadow .15s}
+.spot.hot{border-color:var(--caramel);box-shadow:0 0 0 3px color-mix(in srgb,var(--caramel) 30%,transparent)}
+.rank{width:30px;height:30px;border-radius:50%;background:var(--blip);color:var(--blip-ink);display:grid;place-items:center;font-family:var(--font-mono);font-weight:500;font-size:13px}
+.spot-main{min-width:0;display:grid;gap:6px}
+.spot-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.spot-head h3,.spot-head h4{margin:0;font-size:17px;font-weight:800;line-height:1.3;min-width:0;overflow-wrap:anywhere}
+.dist{font-family:var(--font-mono);font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
+.meta{margin:0;color:var(--muted);font-size:13.5px;overflow-wrap:anywhere}
+.items{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.items li{font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--chip)}
+.items li.hit{background:var(--caramel);color:#3A2116}
+.items li.more{background:transparent;color:var(--muted);padding-inline:4px}
+.badge{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--cone);margin-left:6px}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:4px;font-size:13.5px}
+.actions a.dir{font-weight:800;text-decoration:none}
+.actions a.dir:hover{text-decoration:underline}
+.linkbtn{border:0;background:transparent;color:var(--link);font-weight:700;cursor:pointer;padding:0;font-size:13.5px}
+.src{color:var(--muted);font-size:12px;margin-left:auto}
+.src a{color:var(--muted)}
+.addform{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.addform input{flex:1;min-width:0;border:1.5px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px}
+.empty{background:var(--surface);border:1.5px dashed var(--line);border-radius:18px;padding:20px;display:grid;gap:8px;justify-items:start}
+.empty h3{margin:0;font-size:17px;font-weight:800}
+.empty p{margin:0;color:var(--muted)}
+.more-row{display:flex;justify-content:center}
+.rate{margin:0;font-size:13.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
+.qrate{background:var(--accent-soft);color:var(--link);font-weight:800;border-radius:999px;padding:1px 9px;font-size:12.5px}
+.ways{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.ways li{font-size:12.5px;font-weight:800;padding:2px 10px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--cone);color:var(--cone)}
+.warn{margin:0;font-size:13px;color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,transparent);border-radius:10px;padding:6px 10px}
+.reviews{display:grid;gap:12px;border-top:1px solid var(--line);padding-top:10px;margin-top:2px}
+.review{display:grid;gap:2px;justify-items:start}
+.rv-head{margin:0;font-size:13px;color:var(--muted)}
+.rv-name{font-weight:800;color:var(--ink)}
+.rv-text{margin:0;font-size:14px;max-width:65ch;overflow-wrap:anywhere}
+.fs{border:1px solid var(--line);border-radius:14px;padding:12px;margin:0;display:grid;gap:10px;min-width:0}
+.fs legend{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:0 6px}
+.starpick{display:flex;gap:2px}
+.starpick button{border:0;background:transparent;font-size:30px;line-height:1;cursor:pointer;color:color-mix(in srgb,var(--muted) 40%,transparent);padding:2px 3px;border-radius:8px}
+.starpick button.on{color:var(--caramel)}
+.starhint{font-size:12.5px;color:var(--muted);margin:0}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.check{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;padding:6px 12px;border-radius:999px;background:var(--chip);font-weight:700;font-size:13.5px;cursor:pointer}
+.check input{accent-color:var(--accent);margin:0}
+.sheet textarea,.sheet select{width:100%;border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;font:inherit;color:inherit}
+
+/* live Yelp panel */
+.yelp{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:grid;gap:8px;box-shadow:var(--shadow)}
+.yhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.yhead h3{margin:0;font-size:15px;font-weight:900;display:flex;align-items:center;gap:8px}
+.live{width:9px;height:9px;border-radius:50%;background:var(--caramel);box-shadow:0 0 0 0 color-mix(in srgb,var(--caramel) 60%,transparent);animation:pulse 2s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--caramel) 60%,transparent)}100%{box-shadow:0 0 0 9px transparent}}
+.ystatus{font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.yrows{display:grid}
+.yrow{display:grid;gap:3px;padding:11px 0;border-top:1px solid var(--line)}
+.yrow:first-child{border-top:0;padding-top:4px}
+.yrow h4{font-size:16px}
+.ymeta{margin:0;font-size:13.5px;color:var(--muted);overflow-wrap:anywhere}
+.stars{color:var(--accent);font-weight:800}
+.ynote{margin:0;color:var(--muted);font-size:14px}
+.ynote strong{color:var(--ink)}
+.yerr{display:grid;gap:8px;justify-items:start;padding:4px 0}
+.yerr h4{margin:0;font-size:15px;font-weight:800}
+.look{display:flex;flex-wrap:wrap;gap:8px}
+.lookbtn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-weight:800;font-size:13.5px;text-decoration:none;color:var(--link);box-shadow:inset 0 0 0 1.5px currentColor}
+.lookbtn:hover{background:var(--accent-soft)}
+.yattr{margin:2px 0 0;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+.skel{height:46px;border-radius:12px;background:var(--skel);animation:fade 1.2s ease-in-out infinite alternate}
+@keyframes fade{from{opacity:.55}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.sweep{animation:none;opacity:0}.live,.skel{animation:none}}
+
+footer{color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:14px;display:grid;gap:6px;max-width:75ch}
+footer p{margin:0}
+
+/* sheet */
+.overlay{position:fixed;inset:0;background:rgba(28,14,8,.5);display:grid;place-items:end center;z-index:20;
+  padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+@media (min-width:640px){.overlay{place-items:center}}
+.sheet{background:var(--surface);color:var(--ink);border-radius:22px;width:min(520px,100%);max-height:100%;overflow:auto;padding:20px;display:grid;gap:12px;box-shadow:0 20px 60px -20px rgba(0,0,0,.55)}
+.sheet h2{margin:0;font-family:var(--font-display);font-weight:700;font-size:26px}
+.sheet p{margin:0;color:var(--muted);font-size:14px}
+.sheet .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,140px);gap:10px}
+@media (max-width:460px){.sheet .grid2{grid-template-columns:minmax(0,1fr)}}
+.sheet input{width:100%;border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px}
+.sheet .row{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.formerr{color:var(--warn);font-size:13px;min-height:18px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:700;z-index:30;max-width:calc(100% - 32px)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="../" aria-label="Dessert Spotter home">
+      <img src="../assets/mark-128.webp" alt="" width="58" height="58">
+      <div>
+        <h1>Dessert Spotter</h1>
+        <p class="tag">Crave it. Find it. Rate it.</p>
+      </div>
+    </a>
+    <div class="top-actions">
+      <button class="btn ghost" id="installBtn" type="button" hidden>Install app</button>
+      <button class="btn" id="spotBtn" type="button"><span aria-hidden="true">+</span> Spot a dessert</button>
+    </div>
+  </header>
+
+  <section class="console" aria-label="Search">
+    <div class="fields">
+      <div class="field">
+        <label for="q">What are you craving?</label>
+        <div class="inbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="q" type="search" autocomplete="off" placeholder="Tiramisu, mochi, baklava…" enterkeyhint="search">
+          <button class="clear" id="qClear" type="button" aria-label="Clear search" hidden>×</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="loc">Near</label>
+        <div class="inbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+          <input id="loc" type="text" autocomplete="postal-code" placeholder="ZIP code or neighborhood" enterkeyhint="go">
+          <button class="locbtn" id="geoBtn" type="button" aria-label="Use my location" title="Use my location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg></button>
+        </div>
+        <div class="loc-note" id="locNote" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="chips" id="chips" aria-label="Popular desserts"></div>
+  </section>
+
+  <div class="main">
+    <aside class="radar-card" aria-label="Spotting radar">
+      <div class="eyebrow"><span>Spotting radar</span><span id="radarScale"></span></div>
+      <svg id="radar" viewBox="0 0 320 320" role="img" aria-label="Map of the closest spotted places around you"></svg>
+      <p class="legend">You're the caramel dot. Numbers match the spotted list. Rings show distance.</p>
+    </aside>
+    <section class="results">
+      <div class="summary" aria-live="polite"><h2 id="sumTitle">Dessert spots near you</h2><p id="sumSub"></p></div>
+      <section class="yelp" id="yelp" aria-live="polite" hidden></section>
+      <div class="sec-head"><h3>Spotted list</h3><p id="listCount"></p></div>
+      <div class="list" id="list"></div>
+      <div class="more-row"><button class="btn ghost" id="moreBtn" type="button" hidden>Show more</button></div>
+    </section>
+  </div>
+
+  <footer>
+    <p>Dessert Spotter is starting in Washington. The spotted list begins with places named in local food guides published in 2026, and grows as people add spots, ratings, reviews, and menu changes. Each starter card links to its source. Menus change, so check before you go.</p>
+    <p>Spotted-list distances are measured between ZIP code centers, so treat them as close estimates. Your ratings, reviews, and added spots are saved on this device for now.</p>
+    <p><a href="../">About Dessert Spotter</a> · A project by <a href="https://amarisct.github.io/Amaris/" target="_blank" rel="noopener">amaris ct</a> · <a href="https://www.linkedin.com/showcase/dessert-spotter/" target="_blank" rel="noopener">Follow on LinkedIn</a></p>
+  </footer>
+</div>
+
+<div class="overlay" id="sheet" hidden>
+  <form class="sheet" id="spotForm" novalidate>
+    <h2>Spot a dessert</h2>
+    <p>Found something good? Add the place so the next person craving it can find it.</p>
+    <div class="field"><label for="fName">Place name</label><input id="fName" maxlength="80" required placeholder="e.g., Nonna's Bakery"></div>
+    <div class="field"><label for="fItems">Desserts you spotted</label><input id="fItems" maxlength="200" required placeholder="tiramisu, cannoli"></div>
+    <div class="field"><label for="fAddr">Street address</label><input id="fAddr" maxlength="120" placeholder="123 Main St"></div>
+    <div class="grid2">
+      <div class="field"><label for="fArea">Neighborhood or city</label><input id="fArea" maxlength="60" placeholder="Ballard"></div>
+      <div class="field"><label for="fZip">ZIP code</label><input id="fZip" maxlength="5" inputmode="numeric" required placeholder="98107"></div>
+    </div>
+    <div class="formerr" id="formErr" aria-live="polite"></div>
+    <div class="row"><button class="btn ghost" type="button" id="cancelSpot">Cancel</button><button class="btn" type="submit" id="saveSpot">Add to the map</button></div>
+  </form>
+</div>
+<div class="overlay" id="upd" hidden>
+  <form class="sheet" id="updForm" novalidate>
+    <h2>Rate &amp; update</h2>
+    <p id="updSub"></p>
+    <fieldset class="fs"><legend>Your rating</legend>
+      <div class="starpick" id="starPick" role="radiogroup" aria-label="Star rating"></div>
+      <p class="starhint" id="starHint">Tap a star to rate.</p>
+      <div class="field"><label for="uItem">Which dessert did you have?</label><input id="uItem" list="uItems" maxlength="60" placeholder="tiramisu"><datalist id="uItems"></datalist></div>
+      <div class="field"><label for="uText">Review (optional)</label><textarea id="uText" maxlength="500" rows="3" placeholder="What was it like? Would you get it again?"></textarea></div>
+    </fieldset>
+    <fieldset class="fs"><legend>How can you get it here?</legend>
+      <div class="checks" id="updWays">
+        <label class="check"><input type="checkbox" id="w-inperson" value="inperson"> In person</label>
+        <label class="check"><input type="checkbox" id="w-pickup" value="pickup"> Pickup</label>
+        <label class="check"><input type="checkbox" id="w-delivery" value="delivery"> Delivery</label>
+        <label class="check"><input type="checkbox" id="w-doordash" value="doordash"> DoorDash</label>
+      </div>
+    </fieldset>
+    <fieldset class="fs"><legend>Menu update</legend>
+      <div class="field"><label for="uAdd">New desserts you spotted here</label><input id="uAdd" maxlength="120" placeholder="cannoli, panna cotta"></div>
+      <div class="field"><label for="uReport">Report a change</label>
+        <select id="uReport"><option value="">Nothing to report</option><option value="gone">They no longer have a dessert</option><option value="closed">This place has closed</option><option value="other">Something else changed</option></select></div>
+      <div class="field" id="uGoneWrap" hidden><label for="uGone">Which dessert is gone?</label><select id="uGone"></select></div>
+      <div class="field" id="uNoteWrap" hidden><label for="uNote">What changed?</label><input id="uNote" maxlength="200" placeholder="e.g., tiramisu is weekends only now"></div>
+    </fieldset>
+    <div class="formerr" id="updErr" aria-live="polite"></div>
+    <div class="row"><button class="btn ghost" type="button" id="cancelUpd">Cancel</button><button class="btn" type="submit" id="saveUpd">Save</button></div>
+  </form>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="../config.js"></script>
+<script>
+const WA = {"zips":{"98001":[47.3099,-122.2653],"98002":[47.305,-122.2067],"98003":[47.3203,-122.3117],"98004":[47.6155,-122.2072],"98005":[47.615,-122.1663],"98006":[47.5614,-122.1552],"98007":[47.6174,-122.1426],"98008":[47.6115,-122.1162],"98009":[47.6104,-122.2007],"98010":[47.3114,-122.0053],"98011":[47.7497,-122.2159],"98012":[47.8401,-122.1972],"98013":[47.389,-122.4607],"98014":[47.638,-121.9111],"98015":[47.6104,-122.2007],"98019":[47.725,-121.9369],"98020":[47.8061,-122.3724],"98021":[47.7918,-122.2243],"98022":[47.2665,-122.0314],"98023":[47.3104,-122.3612],"98024":[47.5682,-121.8896],"98025":[47.4218,-121.9729],"98026":[47.8353,-122.327],"98027":[47.4974,-122.0107],"98028":[47.7542,-122.2475],"98029":[47.5585,-122.0055],"98030":[47.3866,-122.2109],"98031":[47.388,-122.1932],"98032":[47.3776,-122.2854],"98033":[47.6786,-122.1894],"98034":[47.7188,-122.1966],"98035":[47.3809,-122.2348],"98036":[47.8049,-122.2855],"98037":[47.8392,-122.2855],"98038":[47.3845,-122.0574],"98039":[47.6269,-122.2314],"98040":[47.5603,-122.2281],"98041":[47.7623,-122.2054],"98042":[47.368,-122.1206],"98043":[47.7933,-122.3076],"98045":[47.4755,-121.7571],"98046":[47.8209,-122.3151],"98047":[47.2666,-122.2435],"98050":[47.536,-121.9312],"98051":[47.3407,-121.8874],"98052":[47.6718,-122.1232],"98053":[47.6462,-122.0386],"98054":[47.34,-122.32],"98055":[47.4648,-122.2075],"98056":[47.5073,-122.1819],"98057":[47.4714,-122.2203],"98058":[47.4465,-122.1216],"98059":[47.5058,-122.1157],"98061":[47.6808,-122.5762],"98062":[47.4693,-122.3621],"98063":[47.3223,-122.3126],"98064":[47.3809,-122.2348],"98065":[47.5293,-121.8225],"98068":[47.4452,-121.431],"98070":[47.4259,-122.4644],"98071":[47.3073,-122.2285],"98072":[47.7684,-122.1271],"98073":[47.674,-122.1215],"98074":[47.6254,-122.0462],"98075":[47.5857,-122.0345],"98077":[47.7529,-122.0582],"98082":[47.8601,-122.2043],"98083":[47.6815,-122.2087],"98087":[47.862,-122.2532],"98089":[47.3871,-122.2023],"98092":[47.2884,-122.098],"98093":[47.311,-122.1138],"98101":[47.6114,-122.3305],"98102":[47.6302,-122.321],"98103":[47.6733,-122.3426],"98104":[47.6036,-122.3256],"98105":[47.6633,-122.3022],"98106":[47.5344,-122.3547],"98107":[47.6701,-122.3763],"98108":[47.5413,-122.3129],"98109":[47.6339,-122.3476],"98110":[47.6478,-122.538],"98111":[47.6062,-122.3321],"98112":[47.6301,-122.2972],"98113":[47.6716,-122.3411],"98114":[47.6062,-122.3321],"98115":[47.6849,-122.2968],"98116":[47.5746,-122.3934],"98117":[47.6873,-122.3772],"98118":[47.5412,-122.275],"98119":[47.6379,-122.3643],"98121":[47.6151,-122.3447],"98122":[47.6116,-122.3056],"98124":[47.6062,-122.3321],"98125":[47.717,-122.3015],"98126":[47.5444,-122.3735],"98127":[47.6063,-122.3308],"98129":[47.6062,-122.3321],"98131":[47.6062,-122.3321],"98132":[47.46,-122.29],"98133":[47.7377,-122.3431],"98134":[47.5903,-122.3263],"98136":[47.5398,-122.3878],"98138":[47.6062,-122.3321],"98139":[47.6473,-122.3999],"98141":[47.6157,-122.3445],"98144":[47.5846,-122.3005],"98145":[47.6062,-122.3321],"98146":[47.4995,-122.3603],"98148":[47.4441,-122.3249],"98151":[47.6,-122.33],"98154":[47.6062,-122.3321],"98155":[47.7559,-122.3003],"98158":[47.4497,-122.3076],"98160":[47.6062,-122.3321],"98161":[47.6062,-122.3321],"98164":[47.606,-122.332],"98165":[47.7161,-122.3004],"98166":[47.4511,-122.353],"98168":[47.4889,-122.3012],"98170":[47.6096,-122.3317],"98171":[47.6,-122.33],"98174":[47.6062,-122.3321],"98175":[47.7161,-122.3004],"98177":[47.7467,-122.3686],"98178":[47.4924,-122.2359],"98181":[47.6062,-122.3321],"98184":[47.6,-122.33],"98185":[47.6062,-122.3321],"98188":[47.4483,-122.2731],"98189":[47.42,-122.25],"98190":[47.6062,-122.3321],"98191":[47.6062,-122.3321],"98194":[47.6024,-122.326],"98195":[47.6564,-122.3048],"98198":[47.3929,-122.3129],"98199":[47.6488,-122.3964],"98201":[47.9884,-122.2006],"98203":[47.9419,-122.2218],"98204":[47.9017,-122.2472],"98205":[48.0,-122.1],"98206":[47.8599,-122.2848],"98207":[47.979,-122.2021],"98208":[47.8948,-122.1987],"98213":[47.9451,-122.2269],"98220":[48.6752,-122.1914],"98221":[48.5004,-122.6309],"98222":[48.5618,-122.812],"98223":[48.1829,-122.1121],"98224":[47.7671,-121.4814],"98225":[48.749,-122.4887],"98226":[48.7974,-122.4448],"98227":[48.7596,-122.4882],"98228":[48.7596,-122.4882],"98229":[48.6952,-122.4124],"98230":[48.9636,-122.7323],"98231":[48.9937,-122.7471],"98232":[48.562,-122.4134],"98233":[48.4786,-122.3345],"98235":[48.4701,-122.2388],"98236":[47.9508,-122.3916],"98237":[48.531,-121.6643],"98238":[48.34,-122.3456],"98239":[48.2189,-122.6823],"98240":[48.9374,-122.6226],"98241":[48.2395,-121.5892],"98243":[48.6201,-122.9999],"98244":[48.8018,-122.0918],"98245":[48.6968,-122.9055],"98247":[48.9045,-122.3325],"98248":[48.8625,-122.5953],"98249":[48.0342,-122.5641],"98250":[48.5454,-123.0947],"98251":[47.8331,-121.6365],"98252":[48.079,-121.9428],"98253":[48.1004,-122.5761],"98255":[48.5255,-121.9887],"98256":[47.8118,-121.5497],"98257":[48.4093,-122.5313],"98258":[48.0171,-122.0672],"98259":[48.152,-122.2074],"98260":[48.0187,-122.453],"98261":[48.4988,-122.8743],"98262":[48.7128,-122.6823],"98263":[48.5345,-122.0586],"98264":[48.9372,-122.4592],"98266":[48.9533,-122.1283],"98267":[48.4435,-121.3163],"98270":[48.0656,-122.1562],"98271":[48.0966,-122.198],"98272":[47.8585,-121.9474],"98273":[48.4352,-122.2082],"98274":[48.3643,-122.1403],"98275":[47.9199,-122.3019],"98276":[48.9276,-122.3215],"98277":[48.3151,-122.6374],"98278":[48.3402,-122.6695],"98279":[48.6195,-122.8355],"98280":[48.5979,-122.9446],"98281":[48.9879,-123.0555],"98282":[48.1761,-122.521],"98283":[48.4704,-121.5554],"98284":[48.5274,-122.2329],"98286":[48.5578,-122.9837],"98287":[48.2023,-122.2538],"98288":[47.6922,-121.3713],"98290":[47.8954,-122.0716],"98291":[47.9095,-122.0501],"98292":[48.2011,-122.378],"98293":[47.8703,-121.7685],"98294":[47.8589,-121.7369],"98295":[48.9708,-122.2074],"98296":[47.8579,-122.092],"98297":[48.6876,-123.0369],"98303":[47.1563,-122.7067],"98304":[46.7531,-121.9898],"98305":[48.0673,-124.3054],"98310":[47.6019,-122.6299],"98311":[47.6271,-122.6373],"98312":[47.5754,-122.6958],"98314":[47.5593,-122.6492],"98315":[47.692,-122.7161],"98320":[47.6776,-122.9375],"98321":[47.1524,-122.0621],"98322":[47.4179,-122.631],"98323":[47.0802,-122.0513],"98324":[48.0906,-123.1721],"98325":[47.9861,-122.7883],"98326":[48.2255,-124.2015],"98327":[47.0968,-122.6312],"98328":[46.8708,-122.2696],"98329":[47.3786,-122.7],"98330":[46.7777,-122.2023],"98331":[47.9287,-124.3989],"98332":[47.3607,-122.6001],"98333":[47.248,-122.629],"98335":[47.3002,-122.6084],"98336":[46.5283,-122.099],"98337":[47.5686,-122.6373],"98338":[47.0246,-122.2936],"98339":[48.0345,-122.7682],"98340":[47.9061,-122.5655],"98342":[47.7514,-122.5196],"98343":[48.1362,-123.7354],"98344":[46.9899,-122.2226],"98345":[47.698,-122.6255],"98346":[47.8108,-122.5255],"98348":[46.8343,-122.3187],"98349":[47.2886,-122.7776],"98350":[47.9052,-124.6261],"98351":[47.2007,-122.7561],"98352":[47.0662,-122.1132],"98353":[47.5952,-122.6225],"98354":[47.2483,-122.3155],"98355":[46.7096,-122.1861],"98356":[46.5581,-122.2496],"98357":[48.328,-124.6151],"98358":[48.0432,-122.6926],"98359":[47.4241,-122.5745],"98360":[47.0822,-122.186],"98361":[46.65,-121.6553],"98362":[48.1065,-123.4384],"98363":[48.0557,-123.9178],"98364":[47.8543,-122.5838],"98365":[47.9222,-122.6896],"98366":[47.5427,-122.5871],"98367":[47.4707,-122.651],"98368":[48.104,-122.7945],"98370":[47.7423,-122.6277],"98371":[47.1991,-122.3151],"98372":[47.2042,-122.2734],"98373":[47.1284,-122.3219],"98374":[47.1424,-122.2652],"98375":[47.1037,-122.3235],"98376":[47.8324,-122.8583],"98377":[46.5492,-121.8555],"98378":[47.5459,-122.6112],"98380":[47.5913,-122.8686],"98381":[48.3032,-124.4685],"98382":[48.0881,-123.1198],"98383":[47.6621,-122.6981],"98384":[47.5218,-122.5396],"98385":[47.1383,-122.0968],"98386":[47.5104,-122.4991],"98387":[47.0732,-122.3943],"98388":[47.1704,-122.5888],"98390":[47.2099,-122.228],"98391":[47.143,-122.1644],"98392":[47.7343,-122.5573],"98393":[47.6267,-122.65],"98394":[47.3309,-122.7736],"98395":[47.379,-122.6426],"98396":[47.1095,-122.037],"98397":[46.7498,-121.8126],"98398":[47.0662,-122.1132],"98401":[47.2537,-122.4443],"98402":[47.2545,-122.4405],"98403":[47.2643,-122.4575],"98404":[47.2113,-122.4126],"98405":[47.2484,-122.4643],"98406":[47.2632,-122.4993],"98407":[47.2825,-122.5039],"98408":[47.2073,-122.4444],"98409":[47.2038,-122.4825],"98411":[47.2529,-122.4443],"98412":[47.2529,-122.4443],"98413":[47.2529,-122.4443],"98415":[47.2529,-122.4443],"98416":[47.2646,-122.4821],"98417":[47.2061,-122.4822],"98418":[47.2232,-122.4465],"98419":[47.2061,-122.4822],"98421":[47.2664,-122.4015],"98422":[47.2948,-122.3983],"98424":[47.2325,-122.3594],"98430":[47.0662,-122.1132],"98431":[47.2529,-122.4443],"98433":[47.1125,-122.5891],"98438":[47.2258,-122.469],"98439":[47.1287,-122.5103],"98442":[47.14,-122.43],"98443":[47.2044,-122.3728],"98444":[47.1464,-122.4572],"98445":[47.1291,-122.4094],"98446":[47.1285,-122.3736],"98447":[47.1441,-122.4434],"98448":[47.2061,-122.4822],"98450":[47.25,-122.44],"98455":[47.25,-122.44],"98460":[47.25,-122.44],"98464":[47.2529,-122.4443],"98465":[47.2491,-122.5273],"98466":[47.228,-122.5396],"98467":[47.2033,-122.5688],"98471":[47.2529,-122.4443],"98477":[47.25,-122.44],"98481":[47.2529,-122.4443],"98490":[47.2061,-122.4822],"98492":[47.12,-122.55],"98493":[47.2529,-122.4443],"98496":[47.1666,-122.5089],"98497":[47.1718,-122.5185],"98498":[47.1591,-122.5485],"98499":[47.1677,-122.5024],"98501":[47.0129,-122.8763],"98502":[47.1043,-123.0552],"98503":[47.024,-122.7827],"98504":[47.0379,-122.9007],"98505":[47.0654,-122.9762],"98506":[47.1042,-122.87],"98507":[47.0379,-122.9007],"98508":[47.0379,-122.9007],"98509":[46.9781,-122.7024],"98511":[46.9616,-123.0283],"98512":[46.9498,-123.0212],"98513":[46.9939,-122.743],"98516":[47.1126,-122.7794],"98520":[46.9843,-123.7963],"98522":[46.629,-123.0612],"98524":[47.3571,-122.8587],"98526":[47.4859,-123.9206],"98527":[46.6315,-123.9549],"98528":[47.4325,-122.9289],"98530":[46.7982,-122.8718],"98531":[46.7246,-122.9671],"98532":[46.6382,-122.9658],"98533":[46.5793,-122.5687],"98535":[47.1126,-124.1738],"98536":[47.1591,-124.1352],"98537":[46.9538,-123.7739],"98538":[46.4956,-123.1468],"98539":[46.6378,-123.2804],"98540":[46.9781,-122.7024],"98541":[47.0058,-123.3997],"98542":[46.5321,-122.7404],"98544":[46.7423,-123.0271],"98546":[47.3273,-122.9163],"98547":[46.8264,-124.094],"98548":[47.4235,-123.1739],"98550":[46.9823,-123.8842],"98552":[47.3429,-123.9291],"98554":[46.5614,-123.5479],"98555":[47.5128,-123.0631],"98556":[46.9024,-123.017],"98557":[47.0297,-123.273],"98558":[46.9348,-122.5565],"98559":[46.9589,-123.3268],"98560":[47.2636,-123.4412],"98561":[46.6215,-123.6471],"98562":[47.2387,-124.2039],"98563":[47.0901,-123.5006],"98564":[46.5131,-122.4789],"98565":[46.5745,-122.9082],"98566":[47.3877,-123.8903],"98568":[46.8434,-123.2493],"98569":[46.9737,-124.1563],"98570":[46.573,-122.7075],"98571":[47.2195,-124.1915],"98572":[46.5829,-123.3147],"98575":[47.4603,-123.8307],"98576":[46.8829,-122.6795],"98577":[46.671,-123.6929],"98579":[46.8193,-123.0406],"98580":[46.956,-122.4483],"98581":[46.3752,-123.0431],"98582":[46.5321,-122.6259],"98583":[47.0022,-123.4836],"98584":[47.2151,-123.1007],"98585":[46.5491,-122.4757],"98586":[46.6544,-123.8203],"98587":[47.3407,-124.2827],"98588":[47.4446,-123.0232],"98589":[46.8641,-122.8493],"98590":[46.7065,-123.9818],"98591":[46.4396,-122.8266],"98592":[47.3368,-123.075],"98593":[46.3985,-122.9585],"98595":[46.8836,-124.1061],"98596":[46.494,-122.9158],"98597":[46.9206,-122.588],"98599":[47.0379,-122.9007],"98601":[45.9195,-122.4574],"98602":[45.8504,-121.3129],"98603":[45.9952,-122.4677],"98604":[45.7907,-122.5318],"98605":[45.7751,-121.6328],"98606":[45.7304,-122.4843],"98607":[45.6058,-122.4142],"98609":[46.0715,-122.8648],"98610":[45.7493,-121.8351],"98611":[46.2783,-122.9139],"98612":[46.1954,-123.3627],"98613":[45.7032,-120.946],"98614":[46.2729,-123.9454],"98616":[46.0515,-122.2995],"98617":[45.6327,-121.1717],"98619":[46.0071,-121.2885],"98620":[45.832,-120.813],"98621":[46.3535,-123.5888],"98622":[45.8248,-122.4912],"98623":[45.8076,-121.4877],"98624":[46.3142,-124.0282],"98625":[46.0112,-122.8166],"98626":[46.1485,-122.887],"98628":[45.8171,-121.1526],"98629":[45.8806,-122.624],"98631":[46.3774,-124.047],"98632":[46.1514,-122.9634],"98635":[45.745,-121.2501],"98637":[46.4984,-124.0335],"98638":[46.3528,-123.8044],"98639":[45.6373,-121.9712],"98640":[46.5029,-124.0436],"98641":[46.549,-124.0282],"98642":[45.7846,-122.6934],"98643":[46.3071,-123.6571],"98644":[46.3308,-124.0455],"98645":[46.3163,-122.7649],"98647":[46.2952,-123.4332],"98648":[45.6882,-121.9093],"98649":[46.2956,-122.6477],"98650":[45.9828,-121.5163],"98651":[45.7409,-121.5974],"98660":[45.6418,-122.6801],"98661":[45.6418,-122.6251],"98662":[45.6914,-122.5805],"98663":[45.6514,-122.6604],"98664":[45.6231,-122.5767],"98665":[45.6892,-122.6616],"98666":[45.6387,-122.6615],"98667":[45.63,-122.66],"98668":[45.6387,-122.6615],"98670":[45.859,-121.1409],"98671":[45.5959,-122.3104],"98672":[45.7551,-121.4795],"98673":[45.6573,-120.9667],"98674":[45.9219,-122.7126],"98675":[45.8622,-122.4275],"98682":[45.6644,-122.5212],"98683":[45.6032,-122.5133],"98684":[45.6359,-122.5155],"98685":[45.7162,-122.6899],"98686":[45.712,-122.6322],"98687":[45.6387,-122.6615],"98801":[47.4253,-120.3273],"98802":[47.4186,-120.2731],"98807":[47.4235,-120.3103],"98811":[47.7373,-120.369],"98812":[48.1206,-119.772],"98813":[48.0082,-119.6712],"98814":[48.2526,-120.1055],"98815":[47.5173,-120.5033],"98816":[47.8483,-120.0273],"98817":[47.8015,-119.9859],"98819":[48.5469,-119.7526],"98821":[47.5412,-120.5609],"98822":[47.7057,-120.276],"98823":[47.2771,-119.5336],"98824":[47.0792,-119.8601],"98826":[47.6438,-120.6748],"98827":[48.8696,-119.6427],"98828":[47.3553,-120.2086],"98829":[48.248,-119.7525],"98830":[47.9021,-119.4053],"98831":[47.8958,-120.149],"98832":[47.3014,-119.064],"98833":[48.5977,-120.388],"98834":[48.1171,-120.0891],"98836":[47.4852,-120.4158],"98837":[47.1374,-119.2891],"98840":[48.3513,-119.6046],"98841":[48.4143,-119.5272],"98843":[47.6969,-120.1721],"98844":[48.9397,-119.4032],"98845":[47.419,-119.9145],"98846":[48.034,-119.9785],"98847":[47.5458,-120.5961],"98848":[47.1976,-119.8459],"98849":[48.4876,-119.5803],"98850":[47.3706,-120.1378],"98851":[47.383,-119.486],"98852":[48.3093,-120.6565],"98853":[47.4268,-119.2816],"98855":[48.7194,-119.3943],"98856":[48.3632,-120.135],"98857":[46.977,-119.0539],"98858":[47.6295,-119.9887],"98859":[48.8224,-118.9469],"98860":[47.4739,-119.1847],"98862":[48.4756,-120.1805],"98901":[46.6021,-120.5059],"98902":[46.5934,-120.5311],"98903":[46.5445,-120.7444],"98904":[46.5645,-120.6947],"98907":[46.6288,-120.574],"98908":[46.6165,-120.7094],"98909":[46.6021,-120.5059],"98920":[46.4043,-120.607],"98921":[46.4287,-120.3134],"98922":[47.2063,-120.9685],"98923":[46.6661,-120.7149],"98925":[47.233,-121.1772],"98926":[46.9996,-120.5163],"98929":[46.74,-121.14],"98930":[46.2538,-119.9157],"98932":[46.348,-120.1818],"98933":[46.4104,-120.5736],"98934":[46.9806,-120.4163],"98935":[46.2121,-120.0151],"98936":[46.5542,-120.3685],"98937":[46.8058,-120.9921],"98938":[46.3525,-120.097],"98939":[46.501,-120.4653],"98940":[47.2503,-121.0456],"98941":[47.2233,-121.0025],"98942":[46.6767,-120.5408],"98943":[47.1886,-120.9537],"98944":[46.3213,-120.0126],"98946":[47.0679,-120.6712],"98947":[46.7063,-120.7473],"98948":[46.3751,-120.3305],"98950":[46.8714,-119.9859],"98951":[46.4507,-120.4265],"98952":[46.3716,-120.7453],"98953":[46.4158,-120.2662],"99001":[47.6438,-117.5921],"99003":[47.9192,-117.2921],"99004":[47.4943,-117.5834],"99005":[47.8411,-117.3759],"99006":[47.9543,-117.4769],"99008":[47.5379,-117.9071],"99009":[48.0205,-117.2963],"99011":[47.6332,-117.6546],"99012":[47.3987,-117.1921],"99013":[47.9169,-117.8119],"99014":[47.5599,-117.5958],"99016":[47.6584,-117.1568],"99017":[47.1887,-117.8755],"99018":[47.2999,-117.1395],"99019":[47.6517,-117.0838],"99020":[47.5649,-117.4994],"99021":[47.7933,-117.3117],"99022":[47.615,-117.704],"99023":[47.5538,-117.1637],"99025":[47.7274,-117.064],"99026":[47.8019,-117.5894],"99027":[47.7027,-117.1121],"99029":[47.7054,-117.8663],"99030":[47.4528,-117.1318],"99031":[47.4338,-117.3827],"99032":[47.3247,-117.9897],"99033":[47.2271,-117.0819],"99034":[47.8941,-117.7536],"99036":[47.5292,-117.2686],"99037":[47.6421,-117.1977],"99039":[47.3427,-117.228],"99040":[47.8697,-117.9856],"99101":[48.3364,-117.9579],"99102":[46.792,-117.2503],"99103":[47.7632,-118.9123],"99104":[47.0793,-117.177],"99105":[46.8591,-118.1611],"99107":[48.8427,-118.1828],"99109":[48.2876,-117.7754],"99110":[48.0071,-117.5579],"99111":[46.88,-117.367],"99113":[46.5901,-117.1692],"99114":[48.578,-117.8645],"99115":[47.5966,-119.2758],"99116":[48.0379,-118.9419],"99117":[47.7977,-118.5307],"99118":[48.9108,-118.6452],"99119":[48.3915,-117.3295],"99121":[48.9725,-118.4884],"99122":[47.6809,-118.1667],"99123":[47.9131,-119.0426],"99124":[47.9979,-118.9545],"99125":[46.9364,-117.723],"99126":[48.7458,-118.0001],"99128":[47.0847,-117.0763],"99129":[47.9797,-118.2159],"99130":[46.9946,-117.1523],"99131":[48.2685,-118.1136],"99133":[47.9385,-118.9978],"99134":[47.4555,-118.2778],"99135":[47.6115,-119.0841],"99136":[46.6973,-117.9417],"99137":[48.1333,-118.1525],"99138":[48.2924,-118.3552],"99139":[48.741,-117.4172],"99140":[48.0236,-118.6547],"99141":[48.6364,-118.0548],"99143":[46.7717,-117.7703],"99144":[47.3778,-118.5043],"99146":[48.9753,-118.2208],"99147":[47.8396,-118.4426],"99148":[48.0784,-117.6325],"99149":[47.2288,-117.4727],"99150":[48.811,-118.6044],"99151":[48.6632,-118.0683],"99152":[48.8496,-117.3963],"99153":[48.8597,-117.3633],"99154":[47.3897,-118.3659],"99155":[48.1434,-119.0094],"99156":[48.1695,-117.1508],"99157":[48.9247,-117.7931],"99158":[47.1282,-117.2427],"99159":[47.3395,-118.6983],"99160":[48.866,-118.2028],"99161":[46.9076,-117.0855],"99163":[46.7352,-117.1729],"99164":[46.7313,-117.1796],"99165":[46.73,-117.17],"99166":[48.6704,-118.6999],"99167":[48.4062,-118.1249],"99169":[47.1315,-118.3958],"99170":[47.2218,-117.4147],"99171":[47.0755,-117.573],"99173":[48.0022,-117.829],"99174":[47.006,-117.356],"99176":[47.1253,-117.3864],"99179":[46.5258,-117.0908],"99180":[48.296,-117.3189],"99181":[48.1351,-117.761],"99185":[47.741,-118.7063],"99201":[47.6665,-117.4365],"99202":[47.6547,-117.381],"99203":[47.6294,-117.4041],"99204":[47.6501,-117.4298],"99205":[47.6964,-117.4399],"99206":[47.6496,-117.2581],"99207":[47.6977,-117.3746],"99208":[47.7374,-117.4352],"99209":[47.6597,-117.4291],"99210":[47.6536,-117.4317],"99211":[47.6536,-117.4317],"99212":[47.6686,-117.3049],"99213":[47.6567,-117.2825],"99214":[47.6536,-117.4317],"99215":[47.6536,-117.4317],"99216":[47.6634,-117.2193],"99217":[47.738,-117.2557],"99218":[47.7556,-117.4146],"99219":[47.6536,-117.4317],"99220":[47.6536,-117.4317],"99223":[47.6156,-117.3622],"99224":[47.6289,-117.5513],"99228":[47.6536,-117.4317],"99251":[47.6536,-117.4317],"99252":[47.6536,-117.4317],"99256":[47.6536,-117.4317],"99258":[47.6536,-117.4317],"99260":[47.6536,-117.4317],"99299":[47.65,-117.42],"99301":[46.2492,-119.1044],"99302":[46.235,-119.0943],"99320":[46.2806,-119.4913],"99321":[46.8484,-119.9121],"99322":[45.9597,-120.1042],"99323":[46.1966,-118.9017],"99324":[46.0471,-118.4093],"99326":[46.6643,-118.8545],"99328":[46.3075,-117.9738],"99329":[46.1408,-118.1531],"99330":[46.475,-119.1013],"99333":[46.7543,-118.148],"99335":[46.6779,-118.5337],"99336":[46.2109,-119.168],"99337":[46.1814,-119.1383],"99338":[46.156,-119.264],"99341":[46.956,-118.7061],"99343":[46.5782,-119.1373],"99344":[46.8527,-118.9932],"99345":[45.9911,-119.7559],"99346":[45.9301,-119.4023],"99347":[46.4698,-117.5993],"99348":[46.3539,-118.4097],"99349":[46.731,-119.7783],"99350":[46.2232,-119.771],"99352":[46.2522,-119.288],"99353":[46.3153,-119.3714],"99354":[46.3257,-119.3067],"99356":[45.8514,-120.3543],"99357":[46.9156,-119.5815],"99359":[46.5128,-118.1024],"99360":[46.0903,-118.663],"99361":[46.2691,-118.1447],"99362":[46.0614,-118.3315],"99363":[46.0846,-118.9061],"99371":[46.8209,-118.2862],"99401":[46.1285,-117.0883],"99402":[46.1343,-117.0015],"99403":[46.3946,-117.0645]},"cities":{"Auburn":[47.3026,-122.1996],"Federal Way":[47.316,-122.2748],"Bellevue":[47.6059,-122.1698],"Black Diamond":[47.3114,-122.0053],"Bothell":[47.786,-122.2107],"Burton":[47.389,-122.4607],"Carnation":[47.638,-121.9111],"Duvall":[47.725,-121.9369],"Edmonds":[47.8207,-122.3497],"Enumclaw":[47.2665,-122.0314],"Fall City":[47.5682,-121.8896],"Hobart":[47.4218,-121.9729],"Issaquah":[47.528,-122.0081],"Kenmore":[47.7542,-122.2475],"Kent":[47.3813,-122.2117],"Kirkland":[47.693,-122.1982],"Lynnwood":[47.8317,-122.2848],"Maple Valley":[47.3845,-122.0574],"Medina":[47.6269,-122.2314],"Mercer Island":[47.5603,-122.2281],"Mountlake Terrace":[47.7933,-122.3076],"North Bend":[47.4755,-121.7571],"Pacific":[47.2666,-122.2435],"Preston":[47.536,-121.9312],"Ravensdale":[47.3407,-121.8874],"Redmond":[47.664,-122.0944],"Redondo":[47.34,-122.32],"Renton":[47.4792,-122.1694],"Rollingbay":[47.6808,-122.5762],"Seahurst":[47.4693,-122.3621],"Snoqualmie":[47.5293,-121.8225],"Snoqualmie Pass":[47.4452,-121.431],"Vashon":[47.4259,-122.4644],"Woodinville":[47.7606,-122.0926],"Sammamish":[47.6056,-122.0403],"Mill Creek":[47.8601,-122.2043],"Seattle":[47.5983,-122.329],"Bainbridge Island":[47.6478,-122.538],"Goodwill Games 1990":[47.6,-122.33],"Bank Of America":[47.6,-122.33],"Everett":[47.9389,-122.2103],"Acme":[48.6752,-122.1914],"Anacortes":[48.5004,-122.6309],"Blakely Island":[48.5618,-122.812],"Arlington":[48.1829,-122.1121],"Baring":[47.7671,-121.4814],"Bellingham":[48.7522,-122.4645],"Blaine":[48.9787,-122.7397],"Bow":[48.562,-122.4134],"Burlington":[48.4786,-122.3345],"Clearlake":[48.4701,-122.2388],"Clinton":[47.9508,-122.3916],"Concrete":[48.531,-121.6643],"Conway":[48.34,-122.3456],"Coupeville":[48.2189,-122.6823],"Custer":[48.9374,-122.6226],"Darrington":[48.2395,-121.5892],"Deer Harbor":[48.6201,-122.9999],"Deming":[48.8018,-122.0918],"Eastsound":[48.6968,-122.9055],"Everson":[48.9045,-122.3325],"Ferndale":[48.8625,-122.5953],"Freeland":[48.0342,-122.5641],"Friday Harbor":[48.5454,-123.0947],"Gold Bar":[47.8331,-121.6365],"Granite Falls":[48.079,-121.9428],"Greenbank":[48.1004,-122.5761],"Hamilton":[48.5255,-121.9887],"Index":[47.8118,-121.5497],"La Conner":[48.4093,-122.5313],"Lake Stevens":[48.0171,-122.0672],"North Lakewood":[48.152,-122.2074],"Langley":[48.0187,-122.453],"Lopez Island":[48.4988,-122.8743],"Lummi Island":[48.7128,-122.6823],"Lyman":[48.5345,-122.0586],"Lynden":[48.9372,-122.4592],"Maple Falls":[48.9533,-122.1283],"Marblemount":[48.4435,-121.3163],"Marysville":[48.0811,-122.1771],"Monroe":[47.8585,-121.9474],"Mount Vernon":[48.3997,-122.1743],"Mukilteo":[47.9199,-122.3019],"Nooksack":[48.9276,-122.3215],"Oak Harbor":[48.3277,-122.6534],"Olga":[48.6195,-122.8355],"Orcas":[48.5979,-122.9446],"Point Roberts":[48.9879,-123.0555],"Camano Island":[48.1761,-122.521],"Rockport":[48.4704,-121.5554],"Sedro Woolley":[48.5274,-122.2329],"Shaw Island":[48.5578,-122.9837],"Silvana":[48.2023,-122.2538],"Skykomish":[47.6922,-121.3713],"Snohomish":[47.8876,-122.0712],"Stanwood":[48.2011,-122.378],"Startup":[47.8703,-121.7685],"Sultan":[47.8589,-121.7369],"Sumas":[48.9708,-122.2074],"Waldron":[48.6876,-123.0369],"Anderson Island":[47.1563,-122.7067],"Ashford":[46.7531,-121.9898],"Beaver":[48.0673,-124.3054],"Bremerton":[47.5865,-122.6499],"Silverdale":[47.6771,-122.7071],"Brinnon":[47.6776,-122.9375],"Buckley":[47.1524,-122.0621],"Burley":[47.4179,-122.631],"Carbonado":[47.0802,-122.0513],"Carlsborg":[48.0906,-123.1721],"Chimacum":[47.9861,-122.7883],"Clallam Bay":[48.2255,-124.2015],"Dupont":[47.0968,-122.6312],"Eatonville":[46.8708,-122.2696],"Gig Harbor":[47.3465,-122.6362],"Elbe":[46.7777,-122.2023],"Forks":[47.9287,-124.3989],"Fox Island":[47.248,-122.629],"Glenoma":[46.5283,-122.099],"Graham":[47.0246,-122.2936],"Port Hadlock":[48.0345,-122.7682],"Hansville":[47.9061,-122.5655],"Indianola":[47.7514,-122.5196],"Joyce":[48.1362,-123.7354],"Kapowsin":[46.9899,-122.2226],"Keyport":[47.698,-122.6255],"Kingston":[47.8108,-122.5255],"La Grande":[46.8343,-122.3187],"Lakebay":[47.2886,-122.7776],"La Push":[47.9052,-124.6261],"Longbranch":[47.2007,-122.7561],"Sumner":[47.138,-122.1706],"Manchester":[47.5952,-122.6225],"Milton":[47.2483,-122.3155],"Mineral":[46.7096,-122.1861],"Morton":[46.5581,-122.2496],"Neah Bay":[48.328,-124.6151],"Nordland":[48.0432,-122.6926],"Olalla":[47.4241,-122.5745],"Orting":[47.0822,-122.186],"Packwood":[46.65,-121.6553],"Port Angeles":[48.0811,-123.6781],"Port Gamble":[47.8543,-122.5838],"Port Ludlow":[47.9222,-122.6896],"Port Orchard":[47.5067,-122.6191],"Port Townsend":[48.104,-122.7945],"Poulsbo":[47.7423,-122.6277],"Puyallup":[47.1556,-122.2998],"Quilcene":[47.8324,-122.8583],"Randle":[46.5492,-121.8555],"Retsil":[47.5459,-122.6112],"Seabeck":[47.5913,-122.8686],"Sekiu":[48.3032,-124.4685],"Sequim":[48.0881,-123.1198],"South Colby":[47.5218,-122.5396],"South Prairie":[47.1383,-122.0968],"Southworth":[47.5104,-122.4991],"Spanaway":[47.0732,-122.3943],"Steilacoom":[47.1704,-122.5888],"Bonney Lake":[47.143,-122.1644],"Suquamish":[47.7343,-122.5573],"Tracyton":[47.6267,-122.65],"Vaughn":[47.3309,-122.7736],"Wauna":[47.379,-122.6426],"Wilkeson":[47.1095,-122.037],"Longmire":[46.7498,-121.8126],"Paradise Inn":[47.0662,-122.1132],"Tacoma":[47.2251,-122.4523],"Camp Murray":[47.0662,-122.1132],"Mcchord Afb":[47.2258,-122.469],"Lakewood":[47.1523,-122.5231],"Wa State Lottery":[47.25,-122.44],"University Place":[47.2033,-122.5688],"Weyerhaeuser Co":[47.25,-122.44],"Olympia":[47.045,-122.9022],"Lacey":[47.001,-122.7425],"Tumwater":[46.9616,-123.0283],"Aberdeen":[46.9843,-123.7963],"Adna":[46.629,-123.0612],"Allyn":[47.3571,-122.8587],"Amanda Park":[47.4859,-123.9206],"Bay Center":[46.6315,-123.9549],"Belfair":[47.4325,-122.9289],"Bucoda":[46.7982,-122.8718],"Centralia":[46.7246,-122.9671],"Chehalis":[46.6382,-122.9658],"Cinebar":[46.5793,-122.5687],"Copalis Beach":[47.1126,-124.1738],"Copalis Crossing":[47.1591,-124.1352],"Cosmopolis":[46.9538,-123.7739],"Curtis":[46.4956,-123.1468],"Doty":[46.6378,-123.2804],"East Olympia":[46.9781,-122.7024],"Elma":[47.0058,-123.3997],"Ethel":[46.5321,-122.7404],"Galvin":[46.7423,-123.0271],"Grapeview":[47.3273,-122.9163],"Grayland":[46.8264,-124.094],"Hoodsport":[47.4235,-123.1739],"Hoquiam":[46.9823,-123.8842],"Humptulips":[47.3429,-123.9291],"Lebam":[46.5614,-123.5479],"Lilliwaup":[47.5128,-123.0631],"Littlerock":[46.9024,-123.017],"Mccleary":[47.0297,-123.273],"Mckenna":[46.9348,-122.5565],"Malone":[46.9589,-123.3268],"Matlock":[47.2636,-123.4412],"Menlo":[46.6215,-123.6471],"Moclips":[47.2387,-124.2039],"Montesano":[47.0901,-123.5006],"Mossyrock":[46.5131,-122.4789],"Napavine":[46.5745,-122.9082],"Neilton":[47.3877,-123.8903],"Oakville":[46.8434,-123.2493],"Ocean Shores":[46.9737,-124.1563],"Onalaska":[46.573,-122.7075],"Pacific Beach":[47.2195,-124.1915],"Pe Ell":[46.5829,-123.3147],"Quinault":[47.4603,-123.8307],"Rainier":[46.8829,-122.6795],"Raymond":[46.671,-123.6929],"Rochester":[46.8193,-123.0406],"Roy":[46.956,-122.4483],"Ryderwood":[46.3752,-123.0431],"Salkum":[46.5321,-122.6259],"Satsop":[47.0022,-123.4836],"Shelton":[47.2151,-123.1007],"Silver Creek":[46.5491,-122.4757],"South Bend":[46.6544,-123.8203],"Taholah":[47.3407,-124.2827],"Tahuya":[47.4446,-123.0232],"Tenino":[46.8641,-122.8493],"Tokeland":[46.7065,-123.9818],"Toledo":[46.4396,-122.8266],"Union":[47.3368,-123.075],"Vader":[46.3985,-122.9585],"Westport":[46.8836,-124.1061],"Winlock":[46.494,-122.9158],"Yelm":[46.9206,-122.588],"Amboy":[45.9195,-122.4574],"Appleton":[45.8504,-121.3129],"Ariel":[45.9952,-122.4677],"Battle Ground":[45.7907,-122.5318],"Bingen":[45.7751,-121.6328],"Brush Prairie":[45.7304,-122.4843],"Camas":[45.6058,-122.4142],"Carrolls":[46.0715,-122.8648],"Carson":[45.7493,-121.8351],"Castle Rock":[46.2783,-122.9139],"Cathlamet":[46.1954,-123.3627],"Centerville":[45.7032,-120.946],"Chinook":[46.2729,-123.9454],"Cougar":[46.0515,-122.2995],"Dallesport":[45.6327,-121.1717],"Glenwood":[46.0071,-121.2885],"Goldendale":[45.832,-120.813],"Grays River":[46.3535,-123.5888],"Heisson":[45.8248,-122.4912],"Husum":[45.8076,-121.4877],"Ilwaco":[46.3142,-124.0282],"Kalama":[46.0112,-122.8166],"Kelso":[46.1485,-122.887],"Klickitat":[45.8171,-121.1526],"La Center":[45.8806,-122.624],"Long Beach":[46.3774,-124.047],"Longview":[46.1514,-122.9634],"Lyle":[45.745,-121.2501],"Nahcotta":[46.4984,-124.0335],"Naselle":[46.3528,-123.8044],"North Bonneville":[45.6373,-121.9712],"Ocean Park":[46.5029,-124.0436],"Oysterville":[46.549,-124.0282],"Ridgefield":[45.7846,-122.6934],"Rosburg":[46.3071,-123.6571],"Seaview":[46.3308,-124.0455],"Silverlake":[46.3163,-122.7649],"Skamokawa":[46.2952,-123.4332],"Stevenson":[45.6882,-121.9093],"Toutle":[46.2956,-122.6477],"Trout Lake":[45.9828,-121.5163],"Underwood":[45.7409,-121.5974],"Vancouver":[45.6562,-122.6172],"Abmps":[45.63,-122.66],"Wahkiacus":[45.859,-121.1409],"Washougal":[45.5959,-122.3104],"White Salmon":[45.7551,-121.4795],"Wishram":[45.6573,-120.9667],"Woodland":[45.9219,-122.7126],"Yacolt":[45.8622,-122.4275],"Wenatchee":[47.4244,-120.3188],"East Wenatchee":[47.4186,-120.2731],"Ardenvoir":[47.7373,-120.369],"Brewster":[48.1206,-119.772],"Bridgeport":[48.0082,-119.6712],"Carlton":[48.2526,-120.1055],"Cashmere":[47.5173,-120.5033],"Chelan":[47.8483,-120.0273],"Chelan Falls":[47.8015,-119.9859],"Conconully":[48.5469,-119.7526],"Dryden":[47.5412,-120.5609],"Entiat":[47.7057,-120.276],"Ephrata":[47.2771,-119.5336],"George":[47.0792,-119.8601],"Leavenworth":[47.6438,-120.6748],"Loomis":[48.8696,-119.6427],"Malaga":[47.3553,-120.2086],"Malott":[48.248,-119.7525],"Mansfield":[47.9021,-119.4053],"Manson":[47.8958,-120.149],"Marlin":[47.3014,-119.064],"Mazama":[48.5977,-120.388],"Methow":[48.1171,-120.0891],"Monitor":[47.4852,-120.4158],"Moses Lake":[47.1374,-119.2891],"Okanogan":[48.3513,-119.6046],"Omak":[48.4143,-119.5272],"Orondo":[47.6969,-120.1721],"Oroville":[48.9397,-119.4032],"Palisades":[47.419,-119.9145],"Pateros":[48.034,-119.9785],"Peshastin":[47.5458,-120.5961],"Quincy":[47.1976,-119.8459],"Riverside":[48.4876,-119.5803],"Rock Island":[47.3706,-120.1378],"Soap Lake":[47.383,-119.486],"Stehekin":[48.3093,-120.6565],"Stratford":[47.4268,-119.2816],"Tonasket":[48.7194,-119.3943],"Twisp":[48.3632,-120.135],"Warden":[46.977,-119.0539],"Waterville":[47.6295,-119.9887],"Wauconda":[48.8224,-118.9469],"Wilson Creek":[47.4739,-119.1847],"Winthrop":[48.4756,-120.1805],"Yakima":[46.5931,-120.6093],"Brownstown":[46.4043,-120.607],"Buena":[46.4287,-120.3134],"Cle Elum":[47.2063,-120.9685],"Cowiche":[46.6661,-120.7149],"Easton":[47.233,-121.1772],"Ellensburg":[46.9996,-120.5163],"Goose Prairie":[46.74,-121.14],"Grandview":[46.2538,-119.9157],"Granger":[46.348,-120.1818],"Harrah":[46.4104,-120.5736],"Kittitas":[46.9806,-120.4163],"Mabton":[46.2121,-120.0151],"Moxee":[46.5542,-120.3685],"Naches":[46.8058,-120.9921],"Outlook":[46.3525,-120.097],"Parker":[46.501,-120.4653],"Ronald":[47.2503,-121.0456],"Roslyn":[47.2233,-121.0025],"Selah":[46.6767,-120.5408],"South Cle Elum":[47.1886,-120.9537],"Sunnyside":[46.3213,-120.0126],"Thorp":[47.0679,-120.6712],"Tieton":[46.7063,-120.7473],"Toppenish":[46.3751,-120.3305],"Vantage":[46.8714,-119.9859],"Wapato":[46.4507,-120.4265],"White Swan":[46.3716,-120.7453],"Zillah":[46.4158,-120.2662],"Airway Heights":[47.6438,-117.5921],"Chattaroy":[47.9192,-117.2921],"Cheney":[47.4943,-117.5834],"Colbert":[47.8411,-117.3759],"Deer Park":[47.9543,-117.4769],"Edwall":[47.5379,-117.9071],"Elk":[48.0205,-117.2963],"Fairchild Air Force Base":[47.6332,-117.6546],"Fairfield":[47.3987,-117.1921],"Ford":[47.9169,-117.8119],"Four Lakes":[47.5599,-117.5958],"Greenacres":[47.6584,-117.1568],"Lamont":[47.1887,-117.8755],"Latah":[47.2999,-117.1395],"Liberty Lake":[47.6517,-117.0838],"Marshall":[47.5649,-117.4994],"Mead":[47.7933,-117.3117],"Medical Lake":[47.615,-117.704],"Mica":[47.5538,-117.1637],"Newman Lake":[47.7274,-117.064],"Nine Mile Falls":[47.8019,-117.5894],"Otis Orchards":[47.7027,-117.1121],"Reardan":[47.7054,-117.8663],"Rockford":[47.4528,-117.1318],"Spangle":[47.4338,-117.3827],"Sprague":[47.3247,-117.9897],"Tekoa":[47.2271,-117.0819],"Tumtum":[47.8941,-117.7536],"Valleyford":[47.5292,-117.2686],"Veradale":[47.6421,-117.1977],"Waverly":[47.3427,-117.228],"Wellpinit":[47.8697,-117.9856],"Addy":[48.3364,-117.9579],"Albion":[46.792,-117.2503],"Almira":[47.7632,-118.9123],"Belmont":[47.0793,-117.177],"Benge":[46.8591,-118.1611],"Boyds":[48.8427,-118.1828],"Chewelah":[48.2876,-117.7754],"Clayton":[48.0071,-117.5579],"Colfax":[46.88,-117.367],"Colton":[46.5901,-117.1692],"Colville":[48.578,-117.8645],"Coulee City":[47.5966,-119.2758],"Coulee Dam":[48.0379,-118.9419],"Creston":[47.7977,-118.5307],"Curlew":[48.9108,-118.6452],"Cusick":[48.3915,-117.3295],"Danville":[48.9725,-118.4884],"Davenport":[47.6809,-118.1667],"Electric City":[47.9131,-119.0426],"Elmer City":[47.9979,-118.9545],"Endicott":[46.9364,-117.723],"Evans":[48.7458,-118.0001],"Farmington":[47.0847,-117.0763],"Fruitland":[47.9797,-118.2159],"Garfield":[46.9946,-117.1523],"Gifford":[48.2685,-118.1136],"Grand Coulee":[47.9385,-118.9978],"Harrington":[47.4555,-118.2778],"Hartline":[47.6115,-119.0841],"Hay":[46.6973,-117.9417],"Hunters":[48.1333,-118.1525],"Inchelium":[48.2924,-118.3552],"Ione":[48.741,-117.4172],"Keller":[48.0236,-118.6547],"Kettle Falls":[48.6364,-118.0548],"Lacrosse":[46.7717,-117.7703],"Lamona":[47.3778,-118.5043],"Laurier":[48.9753,-118.2208],"Lincoln":[47.8396,-118.4426],"Loon Lake":[48.0784,-117.6325],"Malden":[47.2288,-117.4727],"Malo":[48.811,-118.6044],"Marcus":[48.6632,-118.0683],"Metaline":[48.8496,-117.3963],"Metaline Falls":[48.8597,-117.3633],"Mohler":[47.3897,-118.3659],"Nespelem":[48.1434,-119.0094],"Newport":[48.1695,-117.1508],"Northport":[48.9247,-117.7931],"Oakesdale":[47.1282,-117.2427],"Odessa":[47.3395,-118.6983],"Orient":[48.866,-118.2028],"Palouse":[46.9076,-117.0855],"Pullman":[46.7322,-117.1742],"Republic":[48.6704,-118.6999],"Rice":[48.4062,-118.1249],"Ritzville":[47.1315,-118.3958],"Rosalia":[47.2218,-117.4147],"Saint John":[47.0755,-117.573],"Springdale":[48.0022,-117.829],"Steptoe":[47.006,-117.356],"Thornton":[47.1253,-117.3864],"Uniontown":[46.5258,-117.0908],"Usk":[48.296,-117.3189],"Valley":[48.1351,-117.761],"Wilbur":[47.741,-118.7063],"Spokane":[47.6642,-117.3993],"Pasco":[46.2421,-119.0994],"Benton City":[46.2806,-119.4913],"Beverly":[46.8484,-119.9121],"Bickleton":[45.9597,-120.1042],"Burbank":[46.1966,-118.9017],"College Place":[46.0471,-118.4093],"Connell":[46.6643,-118.8545],"Dayton":[46.3075,-117.9738],"Dixie":[46.1408,-118.1531],"Eltopia":[46.475,-119.1013],"Hooper":[46.7543,-118.148],"Kahlotus":[46.6779,-118.5337],"Kennewick":[46.1828,-119.1901],"Lind":[46.956,-118.7061],"Mesa":[46.5782,-119.1373],"Othello":[46.8527,-118.9932],"Paterson":[45.9911,-119.7559],"Plymouth":[45.9301,-119.4023],"Pomeroy":[46.4698,-117.5993],"Prescott":[46.3539,-118.4097],"Mattawa":[46.731,-119.7783],"Prosser":[46.2232,-119.771],"Richland":[46.2889,-119.2973],"West Richland":[46.3153,-119.3714],"Roosevelt":[45.8514,-120.3543],"Royal City":[46.9156,-119.5815],"Starbuck":[46.5128,-118.1024],"Touchet":[46.0903,-118.663],"Waitsburg":[46.2691,-118.1447],"Walla Walla":[46.0614,-118.3315],"Wallula":[46.0846,-118.9061],"Washtucna":[46.8209,-118.2862],"Anatone":[46.1285,-117.0883],"Asotin":[46.1343,-117.0015],"Clarkston":[46.3946,-117.0645]}};
+const SRC = {
+  infD:["The Infatuation","https://www.theinfatuation.com/seattle/guides/best-desserts-seattle"],
+  infB:["The Infatuation","https://www.theinfatuation.com/seattle/guides/best-bakeries-seattle"],
+  infS:["The Infatuation","https://www.theinfatuation.com/seattle/guides/best-shaved-ice-seattle"],
+  sc:["Seattle's Child","https://www.seattleschild.com/ice-cream-etc-family-guide-to-frozen-treats-around-seattle/"],
+  tac:["Seattle Secrets","https://seattlesecrets.org/best-desserts-in-tacoma"],
+  may:["Mayuri","https://mayuriseattle.com/bakery/"],
+  gel:["Gelatiamo","https://gelatiamo.com/bakery/pastries-cookies/"],
+  miss:["Miss Cafe","https://misscaffe.com/blogs/news/turkish-bakery-near-pike-place-market-halal-pastries-pide-baklava-in-seattle"],
+  hel:["Wikipedia","https://en.wikipedia.org/wiki/Hellenika_Cultured_Creamery"],
+  hr:["Wikipedia","https://en.wikipedia.org/wiki/Hello_Robin"],
+  lp:["Wikipedia","https://en.wikipedia.org/wiki/Le_Panier"],
+  pun:["Seattle Met","https://www.seattlemet.com/businesses/punjab-sweets"],
+  don:["Gowanderly","https://gowanderly.com/best-donuts-seattle/"]
+};
+const MM=["Ice cream|ice cream","Non-dairy ice cream|ice cream,vegan"];
+const SS=["Seasonal ice cream|ice cream","Vegan ice cream|ice cream,vegan"];
+const FG=["Gelato|gelato","Goat milk gelato|gelato","Sorbet|sorbet"];
+const NS=["Gelato|gelato","Vegan gelato|gelato,vegan"];
+const MAY=["Gulab jamun|gulab jamun,mithai,indian sweet","Rasmalai|rasmalai,mithai,indian sweet","Kulfi|kulfi,indian sweet","Kaju katli|kaju katli,barfi,mithai,indian sweet","Falooda|falooda,indian sweet"];
+const STARTER = [
+["hood","Hood Famous Cafe & Bar","Chinatown–International District","504 5th Ave S, Ste 107A","98104",["Ube cheesecake|cheesecake,ube","White chocolate guava cheesecake|cheesecake","Matcha cheesecake|cheesecake,matcha"],"infB"],
+["hellenika","Hellenika Cultured Creamery","Pike Place Market","1920 Pike Pl","98101",["Coconut ube gelato|gelato,ube","Honey lavender ice cream|ice cream"],"infD"],
+["gelatiamo","Gelatiamo","Downtown","1400 3rd Ave","98101",["Gelato|gelato","Sorbet|sorbet","Cannoli|cannoli","Tiramisù cup (seasonal)|tiramisu","Cream puffs|cream puff,choux","Fruit tart (seasonal)|tart"],"gel"],
+["bottega","Bottega Italiana","Pike Place Market","1425 1st Ave","98101",["Gelato|gelato","Sorbet|sorbet"],"sc"],
+["misscafe","Miss Cafe","Pike Place Market","1523 1st Ave","98101",["Baklava|baklava","Künefe|kunefe","Kadayif|kadayif,baklava","Şöbiyet|sobiyet,baklava"],"miss"],
+["lepanier","Le Panier","Pike Place Market","1902 Pike Pl","98101",["Macarons|macaron","Croissants|croissant","Pain au chocolat|croissant,chocolate","Chouquettes|choux"],"lp"],
+["meesum","Mee Sum Pastry","Pike Place Market","1533 Pike Pl","98101",["Green tea sesame ball|sesame ball,matcha"],"infD"],
+["dailydozen","Daily Dozen Doughnut Co.","Pike Place Market","Pike Place Market","98101",["Mini doughnuts|donut"],"don"],
+["shugs","Shug's Soda Fountain","West Seattle","3800A California Ave SW","98116",["S'mores sundae|sundae,ice cream","Ice cream floats|float,ice cream"],"infD"],
+["mm-cap","Molly Moon's","Capitol Hill","917 E Pine St","98122",MM,"sc"],
+["mm-wal","Molly Moon's","Wallingford","1622½ N 45th St","98103",MM,"sc"],
+["mm-cc","Molly Moon's","Columbia City","4822 Rainier Ave S","98118",MM,"sc"],
+["mm-qa","Molly Moon's","Queen Anne","321 W Galer St","98119",MM,"sc"],
+["mm-ne","Molly Moon's","Northeast Seattle","2615 NE 46th St","98105",MM,"sc"],
+["ss-cap","Salt & Straw","Capitol Hill","714 E Pike St, Ste A","98122",SS,"sc"],
+["ss-bal","Salt & Straw","Ballard","5420 Ballard Ave NW","98107",SS,"sc"],
+["fj-cap","Frankie & Jo's","Capitol Hill","1010 E Union St","98122",["Dairy-free ice cream|ice cream,vegan","Gluten-free cones|ice cream,gluten free"],"sc"],
+["fj-bal","Frankie & Jo's Sundae Shop","Ballard","1411 NW 70th St","98117",["Dairy-free sundaes|sundae,ice cream,vegan"],"sc"],
+["fg-fre","Fainting Goat Gelato","Fremont","3415 Fremont Ave N","98103",FG,"sc"],
+["fg-wal","Fainting Goat Gelato","Wallingford","2210 N 45th St","98103",FG,"sc"],
+["indigo","Indigo Cow","Wallingford","1911 N 45th St","98103",["Hokkaido soft serve|soft serve,ice cream"],"sc"],
+["dambrosio","D'Ambrosio Gelato","Ballard","5339 Ballard Ave NW","98107",["Gelato|gelato","Seasonal sorbet|sorbet"],"sc"],
+["ns-mag","Nutty Squirrel Gelato","Magnolia","2425 33rd Ave W, Ste B","98199",NS,"sc"],
+["ns-gw","Nutty Squirrel Gelato","Greenwood","7212 Greenwood Ave N","98103",NS,"sc"],
+["matchaman","Matcha Man Ice Cream & Taiyaki","South Seattle","6014 12th Ave S","98108",["Taiyaki cones|taiyaki,ice cream","Soft serve|soft serve,ice cream"],"sc"],
+["fulltilt","Full Tilt Ice Cream","Columbia City","5041 Rainier Ave S, #105","98118",["Ice cream|ice cream"],"sc"],
+["tiptop","Tip Top Ice Cream","Highland Park","7789 Highland Park Way SW","98106",["New Zealand–style ice cream|ice cream"],"sc"],
+["seapops","Seattle Pops","Wallingford","1401 N 45th St","98103",["Popsicles|popsicle"],"sc"],
+["bluebird","Bluebird Ice Cream","Greenwood","7415 Greenwood Ave N","98103",["Ice cream|ice cream","Ice cream floats|float"],"sc"],
+["besito","Besito Ice Cream","Downtown","610 Terry Ave","98104",["Mexican-inspired ice cream|ice cream"],"sc"],
+["sweetalch","Sweet Alchemy Ice Creamery","University District","4301 University Way NE","98105",["Ice cream|ice cream"],"sc"],
+["tomo","Tomo","White Center","9811 16th Ave SW","98106",["Kakigori|kakigori,shaved ice"],"infS"],
+["paju","Paju","South Lake Union","513 Westlake Ave N","98109",["Bingsoo|bingsu,shaved ice"],"infS"],
+["snowy","Snowy Village","Renton","827 N 10th Pl","98057",["Bingsu|bingsu,shaved ice"],"infS"],
+["chebogz","Chebogz","Beacon Hill","2710 Beacon Ave S","98144",["Halo-halo|halo halo,shaved ice"],"infS"],
+["makai","Marination Ma Kai","West Seattle","1660 Harbor Ave SW","98126",["Hawaiian shave ice|shaved ice"],"infS"],
+["alki","Alki Ice Cream & Bubble Tea","Alki","2622 Alki Ave SW","98116",["Bingsu|bingsu,shaved ice","Ice cream|ice cream"],"infS"],
+["pidgin","Pidgin Cooperative","Interbay","3909 18th Ave W","98119",["Butter mochi|mochi"],"infD"],
+["flourbox","The Flour Box","Hillman City","5520 Rainier Ave S","98118",["Basque cheesecake|cheesecake","Brioche donuts|donut","Vanilla bean crème brûlée donut|donut,creme brulee","Cinnamon roll|cinnamon roll"],"infB"],
+["deepsea","Deep Sea Sugar & Salt","Georgetown","6235 Airport Way S","98108",["Funfetti cake slice|cake","Layer cakes|cake","Cupcakes|cupcake"],"infB"],
+["paradise","Cakes of Paradise","Georgetown","6322 6th Ave S","98108",["Rainbow cake|cake","Mango cream cheese pie|pie,mango","Chocolate chantilly cake|cake,chocolate"],"infB"],
+["dahlia","Dahlia Bakery","Belltown","2001 4th Ave","98121",["Triple coconut cream pie|pie,coconut"],"infD"],
+["salvadorean","Salvadorean Bakery","White Center","1719 SW Roxbury St","98106",["Tres leches cake|tres leches,cake"],"infB"],
+["treslecheria","Tres Lecheria","Wallingford","2315 N 45th St","98103",["Tres leches: matcha, strawberry, horchata|tres leches,cake,matcha"],"infB"],
+["temple","Temple Pastries","Central District","2524 S Jackson St, #104","98144",["Macarons|macaron","Blood orange Campari cake donut|donut","Pistachio schnecken|pastry,pistachio"],"infB"],
+["nouveau","Bakery Nouveau","Capitol Hill","137 15th Ave E","98112",["Twice-baked almond croissant|croissant","Macarons|macaron"],"infB"],
+["nielsens","Nielsen's Pastries","Queen Anne","520 2nd Ave W","98119",["Snitter|danish,cinnamon roll","Marzipan cake|cake"],"infB"],
+["pastryproj","The Pastry Project","Pioneer Square","165 S Main St","98104",["Crème brûlée croissant|croissant,creme brulee","Cinnamon roll|cinnamon roll","Chocolate chip cookies|cookie"],"infB"],
+["hellorobin","Hello Robin","Capitol Hill","522 19th Ave E","98112",["Mackles'mores cookie|cookie,smores","Ice cream sandwich|ice cream sandwich,ice cream,cookie"],"hr"],
+["kemi","Kemi Dessert Bar","Capitol Hill","1828 12th Ave","98122",["Black sesame rice crispy square|bar","Vegan yuzu cookies|cookie,vegan"],"infB"],
+["wayland","The Wayland Mill","Wallingford","3800 Latona Ave NE, Ste 112","98105",["Coffee jelly panna cotta|panna cotta"],"infD"],
+["lioness","Lioness","Phinney Ridge","7009 Greenwood Ave N","98103",["Dark chocolate cake|cake,chocolate"],"infD"],
+["umami","Umami Kushi","Rainier Beach","9099 Seward Park Ave S","98118",["Beignets (weekends)|beignet"],"infB"],
+["saintbread","Saint Bread","University District","1421 NE Boat St","98105",["Norwegian school buns|bun,custard"],"infB"],
+["seawolf","Sea Wolf Bakers","Fremont","3621 Stone Way N","98103",["Chocolate chip cookie|cookie","Croissant|croissant"],"infB"],
+["toppot","Top Pot Doughnuts","Capitol Hill","609 Summit Ave E","98102",["Old-fashioned doughnuts|donut"],"don"],
+["may-slu","Mayuri","South Lake Union","1001 Mercer St","98109",MAY,"may"],
+["may-red","Mayuri","Redmond (Overlake)","2010 148th Ave NE, Ste 160","98052",MAY,"may"],
+["may-bot","Mayuri","Bothell","20617 Bothell Everett Hwy, Ste B/C","98012",MAY,"may"],
+["may-iss","Mayuri","Issaquah","1435 11th Ave NW","98027",MAY,"may"],
+["punjab","Punjab Sweets","Kent","23617 104th Ave SE","98031",["Gulab jamun|gulab jamun,mithai,indian sweet","Jalebi|jalebi,mithai,indian sweet"],"pun"],
+["deru","Deru Market","Kirkland","723 9th Ave, Ste D","98033",["Salted peanut butter chocolate cake|cake,chocolate"],"infD"],
+["t55","T55 Pâtisserie","Bothell","18223 Bothell Way NE","98011",["Basque cheesecake|cheesecake","Hazelnut praline chocolate mousse tart|tart,chocolate","Berry compote choux|cream puff,choux"],"infB"],
+["chucks","Chuck's Donuts","Renton","5335 NE 4th St","98059",["Maple bar|donut"],"infD"],
+["fisher","Fisher Scones","Puyallup","110 9th Ave SW","98371",["Fair scone|scone"],"infD"],
+["corina","Corina Bakery","Downtown Tacoma","602 Fawcett Ave","98402",["Vegan desserts|vegan","Chocolate cake|cake,chocolate"],"tac"],
+["letitsnow","Let It Snow","South Tacoma","1901 S 72nd St","98408",["Hawaiian shaved ice|shaved ice"],"tac"],
+["medzo","Medzo Gelato","Downtown Tacoma","612-B Tacoma Ave S","98402",["Hazelnut gelato|gelato","Pistachio gelato|gelato,pistachio"],"tac"],
+["threehearts","Three Hearts","Hilltop, Tacoma","1116 Martin Luther King Jr Way","98405",["Chocolate cake|cake,chocolate"],"tac"],
+["lovebyslice","Love by the Slice","Tacoma","1112 S 11th St, Ste 105","98405",["Raspberry shortcake|cake,shortcake","Cupcakes|cupcake"],"tac"],
+["sidepiece","Side Piece Kitchen","Tacoma","4704 S Oakes St","98409",["Cheesecake|cheesecake"],"tac"],
+["icsocial","Ice Cream Social","Proctor, Tacoma","2521 N Proctor St","98406",["Butter pecan ice cream|ice cream"],"tac"],
+["legendary","Legendary Doughnuts","Tacoma","2602 6th Ave","98406",["Maple bacon bar|donut"],"tac"],
+["bambu","Bambu Tacoma","South Tacoma","773 S 38th St","98418",["Mango sticky rice|mango sticky rice,mango","Bambu sundae|sundae"],"tac"],
+["bonbon","Bon Bon Bakery","Lakewood","9122 S Tacoma Way, #106","98499",["Chocolate éclairs|eclair,chocolate","Fruit tarts|tart"],"tac"],
+["finos","Pasteles Finos del Angel","Tacoma","5102 S Washington St, Ste B","98409",["Vegan churros|churros,vegan","Vegan chocolate cake|cake,chocolate,vegan"],"tac"],
+["spilled","Spilled Butter Desserts","Tacoma","3856 Center St","98409",["Custom cakes|cake"],"tac"]
+];
+const CHIPS=["Tiramisu","Mochi","Baklava","Gulab jamun","Ube","Cheesecake","Bingsu","Halo-halo","Churros","Donuts","Gelato","Tres leches","Macarons","Cannoli","Taiyaki","Pie","Kulfi","Croissant"];
+const ALIAS={doughnut:"donut","mini donut":"donut",froyo:"frozen yogurt",kunafa:"kunefe",knafeh:"kunefe",kanafeh:"kunefe",kunafeh:"kunefe","shave ice":"shaved ice","snow cone":"shaved ice",bingsoo:"bingsu",patbingsu:"bingsu",paleta:"popsicle","ice pop":"popsicle",profiterole:"cream puff",icecream:"ice cream","cheese cake":"cheesecake",macaroon:"macaron",halohalo:"halo halo"};
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+function norm(s){return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[’'`]/g,"").replace(/[^a-z0-9]+/g," ").trim().split(" ").map(w=>(w.length>3&&w.endsWith("s")&&!w.endsWith("ss"))?w.slice(0,-1):w).join(" ")}
+function mkItem(str,extra){const [name,tags=""]=String(str).split("|");return {name,hay:norm(name+" "+tags.split(",").join(" ")),extra:!!extra}}
+function miles(a,b){const R=3958.8,t=x=>x*Math.PI/180;const dLat=t(b.lat-a.lat),dLng=t(b.lng-a.lng);const h=Math.sin(dLat/2)**2+Math.cos(t(a.lat))*Math.cos(t(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.min(1,Math.sqrt(h)))}
+function fmtMi(d){if(d==null||!isFinite(d))return "";if(d<0.05)return "in your ZIP";if(d<10)return "≈ "+d.toFixed(1)+" mi";return "≈ "+Math.round(d).toLocaleString()+" mi"}
+function el(tag,attrs,...kids){const n=document.createElement(tag);if(attrs)for(const k in attrs){if(k==="class")n.className=attrs[k];else if(k==="text")n.textContent=attrs[k];else if(k.startsWith("on"))n.addEventListener(k.slice(2),attrs[k]);else if(attrs[k]!==false&&attrs[k]!=null)n.setAttribute(k,attrs[k]===true?"":attrs[k])}for(const c of kids){if(c==null||c===false||c==="")continue;n.append(c.nodeType?c:document.createTextNode(c))}return n}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+let toastT;function toast(msg){const t=$("#toast");t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,3200)}
+function mapsUrl(q){return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q)}
+
+/* ---------- data ---------- */
+const BASE=STARTER.map(([id,name,area,address,zip,items,src])=>{const c=WA.zips[zip];return {id,name,area,address,zip,lat:c[0],lng:c[1],items:items.map(i=>mkItem(i)),src,kind:"starter"}});
+const AREAS={};BASE.forEach(s=>{const k=norm(s.area);if(!AREAS[k])AREAS[k]={label:s.area,zip:s.zip}});
+const S={q:"",loc:null,limit:20,community:[],extras:{},docs:{},agg:{},openReviews:{},uid:null,user:null,isOwner:false,db:null,canWrite:false,hot:null,us:null};
+const arr=x=>Array.isArray(x)?x:[];
+const WAYS={inperson:"In person",pickup:"Pickup",delivery:"Delivery",doordash:"DoorDash"};
+const REPORT={gone:"No longer has",closed:"Reported closed",other:"Menu changed"};
+function ddUrl(name){return "https://www.doordash.com/search/store/"+encodeURIComponent(name)}
+function shortDate(at){const d=new Date(at);return isNaN(d)?"":d.toLocaleDateString([], {month:"short",day:"numeric"})}
+function starsText(n){return "★★★★★".slice(0,n)+"☆☆☆☆☆".slice(0,5-n)}
+function aggregate(docs){
+  const A={},get=r=>A[r]||(A[r]={ratings:[],ways:{},reports:[]}),str=(v,n)=>typeof v==="string"?v.slice(0,n):"";
+  for(const uid in docs){
+    const d=docs[uid]||{};
+    arr(d.ratings).forEach(x=>{const n=Math.round(+(x&&x.stars));if(x&&typeof x.ref==="string"&&n>=1&&n<=5)get(x.ref).ratings.push({uid,stars:n,item:str(x.item,60),text:str(x.text,500),at:str(x.at,40)})});
+    arr(d.ways).forEach(x=>{if(x&&typeof x.ref==="string")arr(x.ways).filter(w=>WAYS[w]).forEach(w=>{const g=get(x.ref).ways;g[w]=(g[w]||0)+1})});
+    arr(d.reports).forEach(x=>{if(x&&typeof x.ref==="string"&&REPORT[x.kind])get(x.ref).reports.push({uid,kind:x.kind,item:str(x.item,60),note:str(x.note,200),at:str(x.at,40)})});
+  }
+  for(const k in A){A[k].ratings.sort((a,b)=>b.at.localeCompare(a.at));A[k].reports.sort((a,b)=>b.at.localeCompare(a.at))}
+  return A;
+}
+
+function allSpots(){
+  return BASE.concat(S.community).map(s=>{const ex=S.extras[s.id];return ex&&ex.length?Object.assign({},s,{items:s.items.concat(ex.map(e=>mkItem(e.name,true)))}):s});
+}
+function matches(it,qn){if(!qn)return false;const q=ALIAS[qn]?norm(ALIAS[qn]):qn;return q.split(" ").every(tok=>it.hay.includes(tok))}
+function search(){
+  const qn=norm(S.q),out=[];
+  for(const s of allSpots()){
+    const hits=qn?s.items.filter(it=>matches(it,qn)):[];
+    if(qn&&!hits.length)continue;
+    out.push({s,hits,d:miles(S.loc,s)});
+  }
+  out.sort((a,b)=>a.d-b.d||a.s.name.localeCompare(b.s.name));
+  return out;
+}
+
+/* ---------- location ---------- */
+async function loadUS(){if(S.us)return S.us;try{const r=await fetch("zips.json");S.us=await r.json()}catch(e){S.us={}}return S.us}
+function zipPoint(zip){const c=WA.zips[zip]||(S.us&&S.us[zip]);return c?{lat:c[0],lng:c[1]}:null}
+async function resolveLoc(input){
+  const raw=String(input||"").trim();if(!raw)return null;
+  const zip=(raw.match(/\b(\d{5})\b/)||[])[1];
+  if(zip){let c=WA.zips[zip];if(!c){const us=await loadUS();c=us[zip]}return c?{label:zip,zip,lat:c[0],lng:c[1]}:{error:"We couldn't find ZIP code "+zip+"."}}
+  const n=norm(raw.replace(/,?\s*(wa|washington)\.?$/i,""));
+  if(AREAS[n]){const a=AREAS[n],c=WA.zips[a.zip];return {label:a.label,zip:a.zip,lat:c[0],lng:c[1]}}
+  for(const city in WA.cities){if(norm(city)===n){const c=WA.cities[city];return {label:city+", WA",lat:c[0],lng:c[1]}}}
+  for(const k in AREAS){if(k.startsWith(n)&&n.length>=3){const a=AREAS[k],c=WA.zips[a.zip];return {label:a.label,zip:a.zip,lat:c[0],lng:c[1]}}}
+  return {error:"Try a 5-digit ZIP code, or a Washington city or neighborhood like Ballard."};
+}
+async function setLoc(input,quiet){
+  const r=await resolveLoc(input),note=$("#locNote");
+  if(!r)return;
+  if(r.error){note.textContent=r.error;note.classList.add("err");return}
+  S.loc=r;note.classList.remove("err");
+  note.textContent="Measuring from "+r.label+(r.zip&&r.label!==r.zip?" ("+r.zip+")":"");
+  if(!quiet)store("ds.loc",input);
+  S.limit=20;render();scheduleYelp(0);
+}
+
+/* ---------- radar ---------- */
+const SVGNS="http://www.w3.org/2000/svg";
+function sv(tag,attrs,...kids){const n=document.createElementNS(SVGNS,tag);for(const k in attrs)n.setAttribute(k,attrs[k]);kids.forEach(c=>n.append(c.nodeType?c:document.createTextNode(c)));return n}
+function niceScale(d){for(const s of [1,2,4,6,10,20,40,60,100,200,400,1000,2000,4000])if(d<=s)return s;return 6000}
+const fmtR=v=>v<10?String(v):Math.round(v).toLocaleString();
+function drawRadar(rows){
+  const svg=$("#radar");svg.replaceChildren();
+  const C=160,R=140,top=rows.slice(0,12);
+  const scale=niceScale(Math.max(0.5,...top.map(r=>r.d)));
+  $("#radarScale").textContent="Outer ring "+fmtR(scale)+" mi";
+  const defs=sv("defs",{}),g=sv("linearGradient",{id:"sw",x1:"0",y1:"0",x2:"1",y2:"0"});
+  g.append(sv("stop",{offset:"0","stop-color":"var(--caramel)","stop-opacity":"0"}),sv("stop",{offset:"1","stop-color":"var(--caramel)","stop-opacity":".3"}));
+  defs.append(g);svg.append(defs);
+  svg.append(sv("circle",{cx:C,cy:C,r:R,fill:"none",stroke:"var(--radar-ring)","stroke-width":"1.5"}));
+  [0.25,0.5,0.75].forEach(f=>svg.append(sv("circle",{cx:C,cy:C,r:R*f,fill:"none",stroke:"var(--radar-ring)","stroke-width":"1","stroke-dasharray":f===0.5?"0":"2 4"})));
+  svg.append(sv("line",{x1:C-R,y1:C,x2:C+R,y2:C,stroke:"var(--radar-ring)","stroke-width":"1"}),sv("line",{x1:C,y1:C-R,x2:C,y2:C+R,stroke:"var(--radar-ring)","stroke-width":"1"}));
+  const lab=(x,y,t,a)=>svg.append(sv("text",{x,y,fill:"var(--radar-text)","font-size":"9","text-anchor":a||"start",opacity:".85"},t));
+  lab(C+4,C-R*0.5-4,fmtR(scale/2)+" mi");lab(C+4,C-R+11,fmtR(scale)+" mi");
+  lab(C,12,"N","middle");lab(C+R+8,C+3,"E","start");lab(C,316,"S","middle");lab(C-R-8,C+3,"W","end");
+  const sweep=sv("g",{class:"sweep"});sweep.append(sv("path",{d:`M${C} ${C} L${C} ${C-R} A${R} ${R} 0 0 1 ${C+R*Math.sin(Math.PI/3)} ${C-R*Math.cos(Math.PI/3)} Z`,fill:"url(#sw)"}));svg.append(sweep);
+  const used=[],k=Math.cos(S.loc.lat*Math.PI/180);
+  top.forEach((r,i)=>{
+    const s=r.s;
+    let x=C+(s.lng-S.loc.lng)*69.17*k/scale*R,y=C-(s.lat-S.loc.lat)*69.0/scale*R;
+    const dd=Math.hypot(x-C,y-C);if(dd>R){x=C+(x-C)/dd*R;y=C+(y-C)/dd*R}
+    else if(dd<17){const a=dd>0.5?Math.atan2(y-C,x-C):-Math.PI/4+i*2.4;x=C+Math.cos(a)*18;y=C+Math.sin(a)*18}
+    let n=0;while(used.some(p=>Math.hypot(p[0]-x,p[1]-y)<15)&&n<8){const a=n*Math.PI/3+0.4;x+=Math.cos(a)*13;y+=Math.sin(a)*13;n++}
+    used.push([x,y]);
+    const b=sv("g",{class:"blip"+(S.hot===s.id?" hot":""),"data-id":s.id,tabindex:"0",role:"button","aria-label":(i+1)+". "+s.name+", "+fmtMi(r.d)});
+    b.append(sv("circle",{class:"halo",cx:x,cy:y,r:14}),sv("circle",{class:"dot",cx:x,cy:y,r:9}),sv("text",{x,y:y+3.2,"text-anchor":"middle"},String(i+1)));
+    const go=()=>{setHot(s.id);const card=document.querySelector(`.spot[data-id="${CSS.escape(s.id)}"]`);if(card)card.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"center"})};
+    b.addEventListener("click",go);b.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}});
+    b.addEventListener("mouseenter",()=>setHot(s.id));
+    svg.append(b);
+  });
+  svg.append(sv("circle",{cx:C,cy:C,r:7,fill:"var(--radar-you)"}),sv("circle",{cx:C,cy:C,r:12,fill:"none",stroke:"var(--radar-you)","stroke-opacity":".5","stroke-width":"1.5"}));
+}
+function setHot(id){S.hot=id;document.querySelectorAll(".blip").forEach(b=>b.classList.toggle("hot",b.dataset.id===id));document.querySelectorAll(".spot").forEach(c=>c.classList.toggle("hot",c.dataset.id===id))}
+
+/* ---------- spotted list ---------- */
+function card(r,i){
+  const s=r.s,qn=norm(S.q),qt=S.q.trim(),hitSet=new Set(r.hits),ag=S.agg[s.id]||{ratings:[],ways:{},reports:[]};
+  const ordered=r.hits.concat(s.items.filter(it=>!hitSet.has(it)));
+  const shown=ordered.slice(0,qn?6:4),rest=ordered.length-shown.length;
+  const items=el("ul",{class:"items"},...shown.map(it=>el("li",{class:hitSet.has(it)?"hit":"",text:it.name})),rest>0?el("li",{class:"more",text:"+"+rest+" more"}):null);
+  const badge=s.kind==="community"?el("span",{class:"badge",text:s.owner===S.uid?"Added by you":"Community spot"}):null;
+  const src=s.kind==="starter"&&SRC[s.src]?el("span",{class:"src"},"Source: ",el("a",{href:SRC[s.src][1],target:"_blank",rel:"noopener",text:SRC[s.src][0]})):null;
+  const addr=s.address&&s.address!==s.area?s.address:"";
+  const rs=ag.ratings,avg=rs.length?rs.reduce((a,b)=>a+b.stars,0)/rs.length:null;
+  const rsQ=qn?rs.filter(x=>x.item&&matches(mkItem(x.item),qn)):[],avgQ=rsQ.length?rsQ.reduce((a,b)=>a+b.stars,0)/rsQ.length:null;
+  const rate=el("p",{class:"rate"},
+    avg!=null?el("span",{class:"stars",text:"★ "+avg.toFixed(1)}):"No ratings yet",
+    avg!=null?rs.length+(rs.length===1?" rating":" ratings"):"",
+    avgQ!=null?el("span",{class:"qrate",text:"★ "+avgQ.toFixed(1)+" for "+qt}):null);
+  const wk=Object.keys(WAYS).filter(w=>ag.ways[w]);
+  const ways=wk.length?el("ul",{class:"ways","aria-label":"How to get it"},...wk.map(w=>el("li",{text:WAYS[w]+(ag.ways[w]>1?" · "+ag.ways[w]:"")}))):null;
+  const warns=ag.reports.filter(x=>Date.now()-new Date(x.at).getTime()<180*864e5).slice(0,2).map(x=>
+    el("p",{class:"warn"},el("strong",{text:REPORT[x.kind]+(x.kind==="gone"&&x.item?" "+x.item:"")}),(x.note?": "+x.note:"")+(shortDate(x.at)?" · reported "+shortDate(x.at):"")));
+  const texts=rs.filter(x=>x.text),open=!!S.openReviews[s.id];
+  const reviews=texts.length&&open?el("div",{class:"reviews"},...texts.slice(0,8).map(x=>el("div",{class:"review"},
+    el("p",{class:"rv-head"},el("span",{class:"rv-name","data-uid":x.uid,text:x.uid===S.uid?"You":"Someone"}),el("span",{class:"stars",text:"  "+starsText(x.stars)}),(x.item?" · "+x.item:"")+(shortDate(x.at)?" · "+shortDate(x.at):"")),
+    el("p",{class:"rv-text",text:x.text}),
+    (x.uid===S.uid||S.isOwner)?el("button",{class:"linkbtn",type:"button",onclick:()=>removeReview(s.id,x)},"Remove review"):null))):null;
+  const actions=el("div",{class:"actions"},
+    el("button",{class:"btn small",type:"button",onclick:()=>openUpdate(s)},"Rate or update"),
+    el("a",{class:"dir",href:mapsUrl(s.name+", "+(addr?addr+", ":"")+s.area+" "+s.zip),target:"_blank",rel:"noopener",text:"Directions ↗"}),
+    el("a",{class:"dir",href:ddUrl(s.name),target:"_blank",rel:"noopener",text:"DoorDash ↗"}),
+    texts.length?el("button",{class:"linkbtn",type:"button","aria-expanded":String(open),onclick:()=>{S.openReviews[s.id]=!open;render()}},(open?"Hide ":"Read ")+texts.length+(texts.length===1?" review":" reviews")):null,
+    (s.kind==="community"&&(s.owner===S.uid||S.isOwner))?el("button",{class:"linkbtn",type:"button",onclick:()=>removeSpot(s)},"Remove spot"):null,
+    src);
+  return el("article",{class:"spot"+(S.hot===s.id?" hot":""),"data-id":s.id,onmouseenter:()=>setHot(s.id)},
+    el("div",{class:"rank",text:String(i+1)}),
+    el("div",{class:"spot-main"},
+      el("div",{class:"spot-head"},el("h3",{},s.name,badge),el("span",{class:"dist",text:fmtMi(r.d)})),
+      el("p",{class:"meta",text:s.area+(addr?" · "+addr:"")}),
+      rate,items,ways,...warns,actions,reviews));
+}
+let nameSeq=0;
+async function paintNames(){
+  if(!S.user)return;
+  const ids=[...new Set([...document.querySelectorAll(".rv-name[data-uid]")].map(e=>e.dataset.uid))].filter(id=>id!==S.uid);
+  if(!ids.length)return;
+  const seq=++nameSeq;
+  try{const ps=await S.user.profiles(ids);if(seq!==nameSeq)return;
+    document.querySelectorAll(".rv-name[data-uid]").forEach(e=>{const id=e.dataset.uid;if(id!==S.uid)e.textContent=(ps[id]&&ps[id].name)||"Someone"})}catch(e){}
+}
+function render(){
+  if(!S.loc)return;
+  const rows=search(),qn=norm(S.q),qt=S.q.trim();
+  $("#qClear").hidden=!S.q;
+  document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",String(!!qn&&norm(c.textContent)===qn)));
+  const t=$("#sumTitle"),sub=$("#sumSub");t.replaceChildren();
+  if(qn){t.append("Where to get ",el("em",{text:qt})," near "+(S.loc.label==="your location"?"you":S.loc.label));sub.textContent=rows.length?"Closest on the spotted list: "+rows[0].s.name+", "+fmtMi(rows[0].d):"Nothing on the spotted list yet. Look further below."}
+  else{t.append("Dessert spots closest to ",el("em",{text:S.loc.label==="your location"?"you":S.loc.label}));sub.textContent="Starting in Washington. Search a dessert above, or tap one to start."}
+  $("#listCount").textContent=rows.length+(rows.length===1?" place":" places")+" from local guides and people using Dessert Spotter";
+  const list=$("#list");list.replaceChildren();
+  if(!rows.length){
+    list.append(el("div",{class:"empty"},
+      el("h3",{text:"Nobody has spotted "+qt+" yet"}),
+      el("p",{text:"Check the spelling, try a related dessert, or add a place you know serves it."}),
+      el("button",{class:"btn",type:"button",onclick:()=>openSheet(qt)},"Spot "+qt)));
+  }else if(rows[0].d>60){
+    list.append(el("div",{class:"empty"},
+      el("h3",{text:"No spotted places near "+S.loc.label+" yet"}),
+      el("p",{text:"The spotted list is strongest around Seattle and Tacoma. The closest one is "+fmtMi(rows[0].d).replace("≈ ","about ")+" away. Know a good spot nearby? Add it."}),
+      el("button",{class:"btn small",type:"button",onclick:()=>openSheet(qt)},"Spot a dessert")));
+  }
+  rows.slice(0,S.limit).forEach((r,i)=>list.append(card(r,i)));
+  $("#moreBtn").hidden=rows.length<=S.limit;
+  drawRadar(rows);
+  renderYelp();
+  paintNames();
+}
+
+/* ---------- look further: optional live search, plus outbound links ---------- */
+const CFG=(window.DS_CONFIG&&typeof window.DS_CONFIG==="object")?window.DS_CONFIG:{};
+const Y={state:CFG.yelpProxy?"idle":"links",key:"",rows:[],seq:0};
+const CATS={icecream:"Ice cream",gelato:"Gelato",bakeries:"Bakery",desserts:"Desserts",cakeshop:"Cake shop",cupcakes:"Cupcakes",donuts:"Donuts",shavedice:"Shaved ice",bubbletea:"Bubble tea",cafes:"Café",coffee:"Coffee",chocolate:"Chocolate",candy:"Candy",creperies:"Crêpes",italian:"Italian",patisserie:"Pâtisserie",macarons:"Macarons",frozenyogurt:"Frozen yogurt"};
+function prettyCat(a){if(typeof a!=="string")return "";return CATS[a]||a.replace(/_/g," ").replace(/^./,c=>c.toUpperCase())}
+function fmtPhone(p){if(typeof p!=="string")return "";const m=p.match(/^\+1(\d{3})(\d{3})(\d{4})$/);return m?`(${m[1]}) ${m[2]}-${m[3]}`:p.slice(0,20)}
+function yelpKey(){return S.loc?norm(S.q)+"@"+S.loc.lat.toFixed(3)+","+S.loc.lng.toFixed(3):""}
+function whereText(){return S.loc.zip||(S.loc.label==="your location"?S.loc.lat.toFixed(4)+","+S.loc.lng.toFixed(4):S.loc.label)}
+function cleanFusion(b){
+  if(!b||typeof b!=="object"||typeof b.name!=="string"||!b.name.trim()||b.is_closed===true)return null;
+  const loc=b.location||{},disp=arr(loc.display_address).filter(x=>typeof x==="string");
+  const address=(disp.length?disp.join(", "):[loc.address1,loc.city,loc.state,loc.zip_code].filter(x=>typeof x==="string"&&x).join(", ")).slice(0,180);
+  const street=[loc.address1,loc.address2].filter(x=>typeof x==="string"&&x).join(", ").slice(0,140);
+  const c=b.coordinates||{};let mi=null;
+  if(isFinite(+c.latitude)&&isFinite(+c.longitude)&&c.latitude!=null)mi=miles(S.loc,{lat:+c.latitude,lng:+c.longitude});
+  else if(isFinite(+b.distance)&&b.distance!=null)mi=+b.distance/1609.34;
+  const url=typeof b.url==="string"&&/^https:\/\/([a-z0-9-]+\.)*yelp\.com\//i.test(b.url)?b.url:null;
+  const cats=arr(b.categories).map(x=>x&&(typeof x.title==="string"?x.title:prettyCat(x.alias))).filter(Boolean).slice(0,3);
+  const rating=b.rating!=null&&isFinite(+b.rating)?+b.rating:null;
+  return {name:b.name.slice(0,100),street,city:typeof loc.city==="string"?loc.city.slice(0,60):"",zip:typeof loc.zip_code==="string"?loc.zip_code.slice(0,5):"",address,mi,rating,reviews:Math.max(0,+b.review_count||0),price:typeof b.price==="string"?b.price.slice(0,4):"",cats,url,phone:typeof b.display_phone==="string"&&b.display_phone?b.display_phone.slice(0,20):fmtPhone(b.phone)};
+}
+let yT;function scheduleYelp(delay){if(Y.state==="links"){renderYelp();return}clearTimeout(yT);yT=setTimeout(runYelp,delay)}
+async function runYelp(){
+  const q=S.q.trim();
+  if(!S.loc||norm(q).length<3){renderYelp();return}
+  const key=yelpKey();
+  if(key===Y.key&&(Y.state==="ok"||Y.state==="loading"))return;
+  Y.key=key;const seq=++Y.seq;Y.state="loading";renderYelp();
+  try{
+    const u=new URL(CFG.yelpProxy,location.href);
+    u.searchParams.set("term",q.slice(0,80));u.searchParams.set("latitude",S.loc.lat.toFixed(4));u.searchParams.set("longitude",S.loc.lng.toFixed(4));u.searchParams.set("limit","8");
+    const r=await fetch(u.toString(),{headers:{accept:"application/json"}});
+    if(seq!==Y.seq)return;
+    if(!r.ok)throw new Error("status "+r.status);
+    const p=await r.json();if(seq!==Y.seq)return;
+    Y.rows=arr(p&&p.businesses).map(cleanFusion).filter(Boolean).sort((a,b)=>(a.mi??1e9)-(b.mi??1e9));
+    Y.state="ok";
+  }catch(e){if(seq!==Y.seq)return;Y.state="error"}
+  renderYelp();
+}
+function lookLinks(qt){
+  const w=whereText();
+  return el("div",{class:"look"},
+    el("a",{class:"lookbtn",href:"https://www.yelp.com/search?find_desc="+encodeURIComponent(qt)+"&find_loc="+encodeURIComponent(w),target:"_blank",rel:"noopener"},"Yelp ↗"),
+    el("a",{class:"lookbtn",href:mapsUrl(qt+" near "+w),target:"_blank",rel:"noopener"},"Google Maps ↗"),
+    el("a",{class:"lookbtn",href:ddUrl(qt),target:"_blank",rel:"noopener"},"DoorDash ↗"));
+}
+function yrow(b,qt){
+  const meta=el("p",{class:"ymeta"},
+    b.rating!=null?el("span",{class:"stars",text:"★ "+b.rating.toFixed(1)}):null,
+    b.reviews?(b.rating!=null?" · ":"")+b.reviews.toLocaleString()+" reviews":"",
+    b.price?" · "+b.price:"",
+    b.cats.length?" · "+b.cats.join(", "):"");
+  const actions=el("div",{class:"actions"},
+    b.url?el("a",{class:"dir",href:b.url,target:"_blank",rel:"noopener",text:"Open in Yelp ↗"}):null,
+    el("a",{class:"dir",href:mapsUrl(b.name+", "+b.address),target:"_blank",rel:"noopener",text:"Directions ↗"}),
+    el("a",{class:"dir",href:ddUrl(b.name),target:"_blank",rel:"noopener",text:"DoorDash ↗"}),
+    el("button",{class:"linkbtn",type:"button",onclick:()=>openSheet(qt,{name:b.name,address:b.street,area:b.city,zip:b.zip})},"Add to the spotted list"),
+    b.phone?el("span",{class:"src",text:b.phone}):null);
+  return el("article",{class:"yrow"},
+    el("div",{class:"spot-head"},el("h4",{text:b.name}),el("span",{class:"dist",text:b.mi==null?"":b.mi<0.1?"< 0.1 mi":fmtMi(b.mi)})),
+    meta,b.address?el("p",{class:"meta",text:b.address}):null,actions);
+}
+function renderYelp(){
+  const box=$("#yelp"),qt=S.q.trim();
+  if(!qt||!S.loc){box.hidden=true;return}
+  box.hidden=false;box.replaceChildren();
+  const near=S.loc.label==="your location"?"you":S.loc.label;
+  if(Y.state==="links"){
+    box.append(el("div",{class:"yhead"},el("h3",{},"Look further for "+qt),el("span",{class:"ystatus",text:"near "+near})),
+      el("p",{class:"ynote",text:"Open a search for "+qt+" near "+near+" in:"}),lookLinks(qt));
+    return;
+  }
+  const status=el("span",{class:"ystatus"});
+  box.append(el("div",{class:"yhead"},el("h3",{},el("span",{class:"live","aria-hidden":"true"}),"Live results near "+near),status));
+  const fresh=Y.key===yelpKey();
+  if(norm(qt).length<3){box.append(el("p",{class:"ynote",text:"Type a few more letters to search live."}));return}
+  if(Y.state==="error"&&fresh){status.textContent="Paused";box.append(el("p",{class:"ynote",text:"Live results aren't loading right now. You can still search here:"}),lookLinks(qt));return}
+  if(Y.state==="loading"||!fresh){status.textContent="Searching…";box.append(el("div",{class:"skel"}),el("div",{class:"skel"}),el("div",{class:"skel"}));return}
+  if(!Y.rows.length){status.textContent="0 results";box.append(el("p",{class:"ynote"},"Nothing found for ",el("strong",{text:qt})," near "+near+". Try a broader word, or search here:"),lookLinks(qt));return}
+  status.textContent=Y.rows.length+" closest";
+  const list=el("div",{class:"yrows"});Y.rows.forEach(b=>list.append(yrow(b,qt)));
+  box.append(list,el("p",{class:"yattr",text:"Powered by Yelp. Listings match whole menus, so check for "+qt+" before you go."}));
+}
+function initYelp(){renderYelp()}
+
+/* ---------- your spots, ratings and reviews (saved on this device) ---------- */
+const LS_KEY="ds.mine.v1";
+function emptyMine(){return {places:[],extras:[],ratings:[],ways:[],reports:[]}}
+function loadMine(){try{const v=JSON.parse(localStorage.getItem(LS_KEY)||"null");return v&&typeof v==="object"&&!Array.isArray(v)?v:emptyMine()}catch(e){return emptyMine()}}
+function cleanPlace(p,owner){
+  if(!p||typeof p!=="object")return null;
+  const lat=+p.lat,lng=+p.lng;if(!isFinite(lat)||!isFinite(lng)||typeof p.name!=="string"||!p.name.trim())return null;
+  const items=arr(p.items).filter(x=>typeof x==="string"&&x.trim()).slice(0,12).map(x=>mkItem(x.slice(0,60)));
+  if(!items.length)return null;
+  return {id:"c:"+owner+":"+String(p.id).slice(0,40),pid:String(p.id),owner,name:p.name.slice(0,80),area:String(p.area||"").slice(0,60)||String(p.zip||""),address:String(p.address||"").slice(0,120),zip:String(p.zip||"").slice(0,5),lat,lng,items,kind:"community"};
+}
+function refreshCommunity(){
+  const places=[],extras={};
+  for(const id in S.docs){
+    const data=S.docs[id]||{};
+    arr(data.places).forEach(p=>{const c=cleanPlace(p,id);if(c)places.push(c)});
+    arr(data.extras).forEach(x=>{if(x&&typeof x.ref==="string"&&typeof x.item==="string"&&x.item.trim())(extras[x.ref]=extras[x.ref]||[]).push({name:x.item.slice(0,60),owner:id})});
+  }
+  S.community=places;S.extras=extras;S.agg=aggregate(S.docs);
+}
+function initCommunity(){
+  S.uid="me";S.isOwner=true;S.canWrite=true;S.db=true;
+  S.docs={me:loadMine()};refreshCommunity();render();
+  addEventListener("storage",e=>{if(e.key===LS_KEY){S.docs={me:loadMine()};refreshCommunity();render()}});
+}
+let queue=Promise.resolve();
+function writeDoc(ownerId,mutate){
+  const job=queue.then(async()=>{
+    const cur=JSON.parse(JSON.stringify(S.docs[ownerId]||emptyMine()));
+    cur.places=arr(cur.places);cur.extras=arr(cur.extras);
+    mutate(cur);
+    try{localStorage.setItem(LS_KEY,JSON.stringify(cur))}catch(e){throw {code:"storage"}}
+    S.docs[ownerId]=cur;refreshCommunity();
+  });
+  queue=job.catch(()=>{});
+  return job;
+}
+function writeErr(e){
+  if(e&&e.code==="storage")return "This browser isn't saving data right now. Private browsing or full storage can cause this. Try a regular window.";
+  return "Couldn't save just now. Try again in a moment.";
+}
+async function addExtra(s,val){
+  const names=String(val||"").split(",").map(x=>x.trim()).filter(Boolean).slice(0,5);
+  if(!names.length)return;
+  try{await writeDoc(S.uid,cur=>{names.forEach(n=>cur.extras.push({ref:s.id,item:n.slice(0,60),at:new Date().toISOString()}));cur.extras=cur.extras.slice(-300)});
+    S.addingFor=null;toast("Added "+names.join(", ")+" to "+s.name);render()}
+  catch(e){toast(writeErr(e))}
+}
+async function removeReview(ref,x){
+  try{await writeDoc(x.uid,cur=>{cur.ratings=arr(cur.ratings).filter(r=>!(r.ref===ref&&r.at===x.at))});render();toast("Review removed")}
+  catch(e){toast(writeErr(e))}
+}
+
+/* ---------- rate & update sheet ---------- */
+const U={spot:null,stars:0,waysBefore:"[]"};
+const STARWORDS=["Tap a star to rate.","1 star: wouldn't get it again","2 stars: just okay","3 stars: good","4 stars: really good","5 stars: worth the trip"];
+(function buildStars(){const box=$("#starPick");for(let n=1;n<=5;n++){box.append(el("button",{type:"button",role:"radio","aria-checked":"false","aria-label":n+(n===1?" star":" stars"),"data-n":String(n),onclick:()=>{U.stars=U.stars===n?0:n;paintStars()}},"★"))}})();
+function paintStars(){document.querySelectorAll("#starPick button").forEach(b=>{const n=+b.dataset.n;b.classList.toggle("on",n<=U.stars);b.setAttribute("aria-checked",String(n===U.stars))});$("#starHint").textContent=STARWORDS[U.stars]}
+function openUpdate(s){
+  U.spot=s;
+  const mine=S.docs[S.uid]||{},qn=norm(S.q),hit=qn?s.items.find(it=>matches(it,qn)):null;
+  const myR=arr(mine.ratings).filter(x=>x&&x.ref===s.id);
+  const pre=(hit&&myR.find(x=>norm(x.item||"")===norm(hit.name)))||(hit?null:myR[myR.length-1]);
+  U.stars=pre?Math.round(+pre.stars)||0:0;
+  $("#uItem").value=pre?(pre.item||""):(hit?hit.name:"");
+  $("#uText").value=pre?(pre.text||""):"";
+  const dl=$("#uItems");dl.replaceChildren(...s.items.map(it=>el("option",{value:it.name})));
+  const myW=arr(mine.ways).find(x=>x&&x.ref===s.id),ws=myW?arr(myW.ways):[];
+  Object.keys(WAYS).forEach(w=>{$("#w-"+w).checked=ws.includes(w)});
+  U.waysBefore=JSON.stringify([...ws].filter(w=>WAYS[w]).sort());
+  $("#uAdd").value="";$("#uReport").value="";$("#uNote").value="";
+  const g=$("#uGone");g.replaceChildren(...s.items.map(it=>el("option",{value:it.name,text:it.name})));
+  $("#uGoneWrap").hidden=true;$("#uNoteWrap").hidden=true;
+  $("#updSub").textContent=s.name+" · "+s.area;
+  $("#updErr").textContent=S.canWrite?"":"This browser isn't saving data right now.";
+  $("#saveUpd").disabled=!S.canWrite;
+  paintStars();
+  $("#upd").hidden=false;
+  setTimeout(()=>{const b=document.querySelector("#starPick button");if(b)b.focus()},0);
+}
+function closeUpdate(){$("#upd").hidden=true;U.spot=null}
+$("#uReport").addEventListener("change",e=>{const v=e.target.value;$("#uGoneWrap").hidden=v!=="gone";$("#uNoteWrap").hidden=!(v==="other"||v==="gone")});
+$("#cancelUpd").addEventListener("click",closeUpdate);
+$("#upd").addEventListener("click",e=>{if(e.target.id==="upd")closeUpdate()});
+$("#updForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const err=$("#updErr");err.textContent="";
+  const s=U.spot;if(!s)return;
+  const item=$("#uItem").value.trim().slice(0,60),text=$("#uText").value.trim().slice(0,500);
+  const ways=[...document.querySelectorAll("#updWays input:checked")].map(c=>c.value).filter(w=>WAYS[w]);
+  const waysChanged=JSON.stringify([...ways].sort())!==U.waysBefore;
+  const adds=$("#uAdd").value.split(",").map(x=>x.trim()).filter(Boolean).slice(0,5);
+  const kind=$("#uReport").value,gone=$("#uGone").value,note=$("#uNote").value.trim().slice(0,200);
+  if(text&&!U.stars){err.textContent="Pick a star rating to go with your review.";return}
+  if(kind==="other"&&!note){err.textContent="Say what changed so the next person knows.";return}
+  if(!U.stars&&!waysChanged&&!adds.length&&!kind){err.textContent="Nothing to save yet. Rate it, mark how to get it, or report a change.";return}
+  const at=new Date().toISOString();
+  $("#saveUpd").disabled=true;
+  try{
+    await writeDoc(S.uid,cur=>{
+      cur.ratings=arr(cur.ratings);cur.ways=arr(cur.ways);cur.reports=arr(cur.reports);
+      if(U.stars){cur.ratings=cur.ratings.filter(x=>!(x&&x.ref===s.id&&norm(x.item||"")===norm(item)));cur.ratings.push({ref:s.id,stars:U.stars,item,text,at});cur.ratings=cur.ratings.slice(-300)}
+      if(waysChanged){cur.ways=cur.ways.filter(x=>!(x&&x.ref===s.id));if(ways.length)cur.ways.push({ref:s.id,ways,at});cur.ways=cur.ways.slice(-300)}
+      adds.forEach(n=>cur.extras.push({ref:s.id,item:n.slice(0,60),at}));cur.extras=cur.extras.slice(-300);
+      if(kind){cur.reports.push({ref:s.id,kind,item:kind==="gone"?gone.slice(0,60):"",note,at});cur.reports=cur.reports.slice(-200)}
+    });
+    closeUpdate();render();toast("Saved your update to "+s.name);
+  }catch(ex){err.textContent=writeErr(ex)}
+  finally{$("#saveUpd").disabled=!S.canWrite}
+});
+
+async function removeSpot(s){
+  try{await writeDoc(s.owner,cur=>{cur.places=cur.places.filter(p=>String(p.id)!==s.pid)});toast("Removed "+s.name)}
+  catch(e){toast(writeErr(e))}
+}
+
+/* ---------- spot sheet ---------- */
+function openSheet(items,place){
+  $("#sheet").hidden=false;$("#formErr").textContent="";
+  if(place){$("#fName").value=place.name||"";$("#fAddr").value=place.address||"";$("#fArea").value=place.area||"";$("#fZip").value=place.zip||""}
+  if(items)$("#fItems").value=items;
+  if(S.loc&&S.loc.zip&&!$("#fZip").value)$("#fZip").value=S.loc.zip;
+  if(!S.canWrite){$("#formErr").textContent="This browser isn't saving data right now.";$("#saveSpot").disabled=true}
+  else $("#saveSpot").disabled=false;
+  setTimeout(()=>$(place?"#fItems":"#fName").focus(),0);
+}
+function closeSheet(){$("#sheet").hidden=true;$("#spotBtn").focus()}
+$("#spotBtn").addEventListener("click",()=>openSheet(""));
+$("#cancelSpot").addEventListener("click",closeSheet);
+$("#sheet").addEventListener("click",e=>{if(e.target.id==="sheet")closeSheet()});
+document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!$("#upd").hidden)closeUpdate();else if(!$("#sheet").hidden)closeSheet()});
+$("#spotForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const err=$("#formErr");err.textContent="";
+  const name=$("#fName").value.trim(),items=$("#fItems").value.split(",").map(x=>x.trim()).filter(Boolean).slice(0,12),zip=$("#fZip").value.trim();
+  if(!name){err.textContent="Add the place's name.";return}
+  if(!items.length){err.textContent="List at least one dessert you spotted.";return}
+  if(!/^\d{5}$/.test(zip)){err.textContent="Enter a 5-digit ZIP code so we can measure distance.";return}
+  const loc=await resolveLoc(zip);if(!loc||loc.error){err.textContent="We couldn't find ZIP code "+zip+".";return}
+  const place={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:name.slice(0,80),items:items.map(x=>x.slice(0,60)),address:$("#fAddr").value.trim().slice(0,120),area:$("#fArea").value.trim().slice(0,60),zip,lat:loc.lat,lng:loc.lng,at:new Date().toISOString()};
+  $("#saveSpot").disabled=true;
+  try{await writeDoc(S.uid,cur=>{cur.places.push(place);cur.places=cur.places.slice(-200)});
+    closeSheet();["fName","fItems","fAddr","fArea"].forEach(id=>$("#"+id).value="");
+    S.q=items[0];$("#q").value=S.q;render();toast("Added "+place.name+" to the map")}
+  catch(ex){err.textContent=writeErr(ex)}
+  finally{$("#saveSpot").disabled=false}
+});
+
+/* ---------- wiring ---------- */
+const chipBox=$("#chips");
+CHIPS.forEach(c=>chipBox.append(el("button",{class:"chip",type:"button","aria-pressed":"false",onclick:()=>{const same=norm(S.q)===norm(c);S.q=same?"":c;$("#q").value=S.q;S.limit=20;render();scheduleYelp(0)}},c)));
+let qT;$("#q").addEventListener("input",e=>{clearTimeout(qT);qT=setTimeout(()=>{S.q=e.target.value;S.limit=20;render();scheduleYelp(800)},120)});
+$("#q").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();clearTimeout(qT);S.q=e.target.value;S.limit=20;render();scheduleYelp(0)}});
+$("#qClear").addEventListener("click",()=>{S.q="";$("#q").value="";render();$("#q").focus()});
+let lT;$("#loc").addEventListener("input",e=>{clearTimeout(lT);const v=e.target.value;lT=setTimeout(()=>{if(/^\d{5}$/.test(v.trim())||v.trim().length>=4)setLoc(v)},400)});
+$("#loc").addEventListener("change",e=>setLoc(e.target.value));
+$("#loc").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();clearTimeout(lT);setLoc(e.target.value)}});
+$("#moreBtn").addEventListener("click",()=>{S.limit+=20;render()});
+function nearestZip(table,lat,lng){let best=null,bd=1e18;for(const z in table){const c=table[z],d=(c[0]-lat)**2+((c[1]-lng)*Math.cos(lat*Math.PI/180))**2;if(d<bd){bd=d;best=z}}return best}
+$("#geoBtn").addEventListener("click",()=>{
+  const note=$("#locNote");note.classList.remove("err");
+  if(!navigator.geolocation){note.classList.add("err");note.textContent="This browser can't share your location. Enter a ZIP code instead.";return}
+  note.textContent="Finding you…";
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const lat=pos.coords.latitude,lng=pos.coords.longitude;
+    let z=nearestZip(WA.zips,lat,lng);
+    if(!z||miles({lat,lng},{lat:WA.zips[z][0],lng:WA.zips[z][1]})>15){const us=await loadUS();z=nearestZip(us,lat,lng)}
+    S.loc={label:"your location",zip:z||"",lat,lng};$("#loc").value="";store("ds.loc","");
+    note.textContent="Measuring from where you are now"+(z?" (near "+z+")":"");
+    S.limit=20;render();scheduleYelp(0);
+  },err=>{note.classList.add("err");note.textContent=err&&err.code===1?"Location is off for this site. Enter a ZIP code instead.":"Couldn't find your location. Enter a ZIP code instead."},{enableHighAccuracy:false,timeout:10000,maximumAge:300000});
+});
+let installEvt=null;
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;$("#installBtn").hidden=false});
+addEventListener("appinstalled",()=>{installEvt=null;$("#installBtn").hidden=true});
+$("#installBtn").addEventListener("click",async()=>{if(!installEvt)return;installEvt.prompt();try{await installEvt.userChoice}catch(e){}installEvt=null;$("#installBtn").hidden=true});
+
+(async()=>{
+  let wantSpot=false;
+  try{const sp=new URLSearchParams(location.search),qp=sp.get("q");if(qp){S.q=qp.slice(0,60);$("#q").value=S.q}wantSpot=sp.get("spot")==="1"}catch(e){}
+  const saved=store("ds.loc");
+  if(saved){$("#loc").value=saved;await setLoc(saved,true)}
+  if(!S.loc){const c=WA.zips["98101"];S.loc={label:"Downtown Seattle",zip:"98101",lat:c[0],lng:c[1]};$("#locNote").textContent="Showing distances from downtown Seattle. Enter your ZIP for yours."}
+  render();
+  initYelp();
+  initCommunity();
+  if(S.q)scheduleYelp(0);
+  if(wantSpot)openSheet("");
+})();
+</script>
+<script>if("serviceWorker" in navigator){addEventListener("load",()=>{navigator.serviceWorker.register("../sw.js").catch(()=>{})})}</script>
+</body>
+</html>
